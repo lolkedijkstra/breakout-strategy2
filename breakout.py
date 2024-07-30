@@ -314,10 +314,7 @@ if __name__ == '__main__':
         # load data into pandas DataFrame        
         data = Application.load_data(ticker, b, e) 
         
-
-        # slice input 
-     
-        
+        # slice input     
         if ticker.lower() in ['d', 'h', '5m']:   
             data = data[int(args.begin):int(args.end)]
         else:    
