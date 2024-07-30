@@ -1,0 +1,386 @@
+import backtrader as bt
+from backtrader import Strategy
+import statistics
+
+from pivot import Pivot
+
+
+def is_trend(df, backcandles=10):    
+    ema_signal = [0]*len(df)
+
+    for row in range(backcandles, len(df)):
+        upt = 2 # 0x0010
+        dnt = 1 # 0x0001
+        
+        r = range(row-backcandles, row+1)
+        for i in r:
+            if max(df.Open[i], df.Close[i]) > df.EMA[i]:
+                dnt = 0
+                break
+            
+        for i in r:               
+            if min(df.Open[i], df.Close[i]) < df.EMA[i]:
+                upt = 0
+                break
+                
+        ema_signal[row] = upt | dnt
+        
+    return ema_signal
+
+
+def slice(data, b, e):
+    return data.get(ago=e-data.buflen(), size=e-b)
+      
+
+
+#
+# logging
+#
+import logging
+logger = logging.getLogger()
+
+
+def log_signal(level, i, data, signal):
+    name = "BUY" if int(signal[i]) == Signal.BUY else "SELL" if int(signal[i]) == Signal.SELL else "NONE" 
+    logger.log(level, f'{i}, {data.open.array[i]}, {data.high.array[i]}, {data.low.array[i]}, {data.close.array[i]}, {data.volume.array[i]}, {name}')
+
+def log_signals(level, data, signals, s):
+    if level < logger.level:
+        return
+    
+    sz = len(signals)
+    
+    match(s):
+        case Signal.BUY:
+            for i in range(0, sz):
+                if Signal.BUY == int(signals[i]):
+                    log_signal(level, i, data, signals)
+                    
+        case Signal.SELL:
+            for i in range(0, sz):
+                if Signal.SELL == int(signals[i]):
+                    log_signal(level, i, data, signals)
+                    
+        case Signal.EITHER:
+            for i in range(0, sz):
+                if int(signals[i] in [Signal.BUY, Signal.SELL] ):
+                    log_signal(level, i, data, signals)
+                   
+
+
+class Signal:
+    BUY    = 2
+    SELL   = 1
+    EITHER = BUY | SELL
+    NONE   = 0
+
+#
+# calculations
+#
+
+def get_pivot_hl(data, pivots, highlow, num=3):
+    values = []
+    for i in range(0, len(data)):
+        if pivots[i] == highlow:
+            values.append(data[i])
+            
+    return values[-num:]
+
+
+#
+# data
+# candle_idx
+# backcandles
+# gap_window
+# pivots
+# zone_width
+# breakout_f    strength of breakout (min. = 1)
+#
+
+def determine_signal(data, candle_idx, backcandles, gap_window, pivots, zone_width, breakout_f): 
+    # gap_window must be >= pivot window to avoid look ahead bias     
+    begin = candle_idx - backcandles - gap_window
+    end   = candle_idx - gap_window   
+    
+    if begin < 0 or candle_idx + gap_window >= data.buflen():
+        return 0
+        
+    # check if pivots form a correct zone
+    def check_zone(pivots, mean):
+        for p in pivots:
+            if abs(p - mean) > zone_width:
+                return False
+        
+        return True
+
+
+    # get last n pivot lows in window
+    pvts  = get_pivot_hl(data=data.low.array[begin:end], pivots=pivots[begin:end], highlow=Pivot.LOW, num=3)
+            
+    # if support is broken, it's a sell
+    lb_low  = Signal.NONE
+    if len(pvts) == 3:
+        mean_pvts = statistics.mean(pvts)
+        current_close = data.close.array[candle_idx]
+        
+        if check_zone(pvts, mean_pvts) and (mean_pvts - current_close) > zone_width * breakout_f:
+            lb_low = Signal.SELL
+            
+
+
+    # get last n pivot highs in window
+    pvts = get_pivot_hl(data=data.high.array[begin:end], pivots=pivots[begin:end], highlow=Pivot.HIGH, num=3)
+    
+    # if resistance is broken, it's a buy
+    lb_high = Signal.NONE
+    if len(pvts) == 3:
+        mean_pvts = statistics.mean(pvts)
+        current_close = data.close.array[candle_idx]
+               
+        if check_zone(pvts, mean_pvts) and (current_close - mean_pvts) > zone_width * breakout_f:
+            lb_high = Signal.BUY
+     
+          
+    # these should be exclusive, so result either NONE, BUY or SELL (never BUY|SELL)
+    return lb_low | lb_high
+
+
+            
+
+# these are just defaults
+GAP_WINDOW  = 6
+BACKCANDLES = 40
+SL_DISTANCE = 0.03
+TP_SL_RATIO = 2
+ZONE_WIDTH  = 0.01
+BREAKOUT_FACTOR = 2.0
+
+class BreakoutStrategy(Strategy):
+    
+    LOG_INIT = False
+    LOG_ORDERS = False
+
+    
+    #
+    # input parameters for the BreakoutStrategy class
+    # these parameters can be used with optimize to get the optimal value combinations
+    #
+    params = dict(
+        ticker      = 'EURUSD',
+        tp_sl_ratio = TP_SL_RATIO,    
+        sl_distance = SL_DISTANCE,         # distance % below or above current price depending on direction
+        
+        #
+        # the following parameters are propagated to Indicator
+        #
+        
+        backcandles = BACKCANDLES,     
+        gap_window  = GAP_WINDOW,      
+        zone_width  = ZONE_WIDTH, 
+        breakout_f  = BREAKOUT_FACTOR,     
+        pivots      = []               
+    )
+   
+    
+     
+    #
+    # definition of Indicator: wrapper for calculation
+    #
+    
+    class Indicator(bt.Indicator):
+        lines = ('signal',)
+        
+        params = dict(
+            backcandles = BACKCANDLES,
+            gap_window  = GAP_WINDOW,
+            zone_width  = ZONE_WIDTH,
+            breakout_f  = BREAKOUT_FACTOR,
+            pivots      = []
+        )
+
+       
+        #
+        # signal calculation is done here for each run (e.g. backtest)
+        #
+        def __init__(self):           
+            import array
+            sz = self.data.buflen()
+            l_signal = array.array('f', [0] * sz) # 'i' does not work!            
+            
+            for i in range(0, sz):
+                l_signal[i] = determine_signal(
+                        data        = self.data, 
+                        candle_idx  = i,  
+                        backcandles = self.params.backcandles, 
+                        gap_window  = self.params.gap_window,
+                        pivots      = self.params.pivots,
+                        zone_width  = self.params.zone_width,
+                        breakout_f  = self.params.breakout_f
+                        )
+            
+            self.lines.signal.array = l_signal 
+
+    
+    
+    #
+    # BreakoutStrategy.log
+    #
+    def log(self, txt, dt=None):        
+        ''' Logging function fot this strategy'''
+        dt = dt or self.data.datetime.date(0)
+        logger.info('%s, %s' % (dt.isoformat(), txt))
+
+    
+    def calc_signal(self):
+        self.signal_ix = 0
+        
+        import array
+        sz = self.data.buflen()
+        l_signal = array.array('i', [0] * sz) # 'i' does not work!            
+        
+        for i in range(0, sz):
+            l_signal[i] = determine_signal(
+                    data        = self.data, 
+                    candle_idx  = i,  
+                    backcandles = self.params.backcandles, 
+                    gap_window  = self.params.gap_window,
+                    pivots      = self.params.pivots,
+                    zone_width  = self.params.zone_width,
+                    breakout_f  = self.params.breakout_f
+                    )
+    
+        return l_signal
+    
+    
+    #pos_sz = 10000          # position size
+    #signal = [int]
+    
+    #
+    # BreakoutStrategy.__init__
+    #
+    def __init__(self):  
+                       
+        print("Calculating signals...")
+        
+        # keep track of pending orders
+        self.order = None
+        self.buyprice = None
+        self.buycomm = None
+               
+        # reset open orders to begin with
+        self.open_long = 0
+        self.open_short = 0
+        
+        
+        #self.data['EMA'] = bt.indicators.ExponentialMovingAverage
+        #self.data['ema_signal'] = is_trend(self.data, backcandles=10)
+
+        self.signal = \
+            BreakoutStrategy.Indicator(
+                self.data, 
+                backcandles = self.params.backcandles, 
+                gap_window  = self.params.gap_window, 
+                zone_width  = self.params.zone_width,
+                pivots      = self.params.pivots,
+                breakout_f  = self.params.breakout_f
+            )
+        
+          
+             
+        log_signals(logging.INFO, self.data, self.signal.array,  Signal.BUY | Signal.SELL )
+        
+
+       
+ 
+
+    def next(self):
+        # log current close
+        #self.log(f'Close price: {self.data.close[0]:8.4f}')
+
+        #if len(self.trades) == 1:
+        #    for trade in self.trades:
+        #        trade.sl = trade.entry_price
+
+        # pending order
+        if self.order:
+            return
+
+        
+        if not self.position:   # Check if we are in the market
+            
+            close = self.data.close[0]          # last close
+            s_fac = self.params.sl_distance     # stop in fraction of last close
+            r     = self.params.tp_sl_ratio     # w/l ratio
+            sz    = 65_000
+            
+            match self.signal:
+                
+                case Signal.SELL: 
+                    stop1  = close * (1.0 + s_fac)
+                    limit1 = close * (1.0 - r * s_fac)   
+                    
+                    self.log(f'ORDER: OPEN SELL [close={close:6.4f}, sl={stop1:6.4f}, tp={limit1:6.4f}, size={sz}]')               
+                    self.order = self.sell_bracket(limitprice=limit1, stopprice=stop1, size=sz)
+                    #self.sell(sl=sl1, tp=tp1, size=sz)#size=self.pos_sz) 
+                    
+                    #tp2 = close - sl_diff
+                    #self.sell(sl=sl1, tp=tp2, size=self.pos_sz)
+                    
+                case Signal.BUY:
+                    stop1  = close * (1.0 - s_fac)
+                    limit1 = close * (1.0 + r * s_fac)
+                    
+                    self.log(f'ORDER: OPEN BUY [close={close:6.4f}, sl={stop1:6.4f}, tp={limit1:6.4f}, size={sz}]')               
+                    self.order = self.buy_bracket(limitprice=limit1, stopprice=stop1, size=sz)
+                    #self.buy(sl=sl1, tp=tp1, size=1)#size=self.pos_sz)
+                    
+                    #tp2 = close + sl_diff
+                    #self.buy(sl=sl1, tp=tp2, size=self.pos_sz)
+                
+                case 0:
+                    pass
+                case _:
+                    raise ValueError(f'Signal: {self.signal} is invalid. Should be either 0, 1, or 2')
+         
+        else:  # we have a current position
+            pass  
+        
+
+
+    def notify_order(self, order):        
+        
+        if order.status in [order.Submitted, order.Accepted]:
+            # Buy/Sell order submitted/accepted to/by broker - Nothing to do
+            return
+        
+        # order completed
+        if order.status in [order.Completed]:
+            
+            if order.isbuy():       # Buy
+                self.log(f'BUY EXECUTED [Price: {order.executed.price:.2f}, Cost: {order.executed.value:.2f}, Comm: {order.executed.comm:.2f}]')
+                   
+                self.buyprice = order.executed.price
+                self.buycomm = order.executed.comm
+                
+            elif order.issell():    # Sell
+                self.log(f'SELL EXECUTED [Price: {order.executed.price:.2f}, Cost: {order.executed.value:.2f}, Comm: {order.executed.comm:.2f}]')
+
+            self.bar_executed = len(self)
+
+        elif order.status in [order.Canceled, order.Margin, order.Rejected]:
+            self.log('Order Canceled/Margin/Rejected')
+
+        # Write down: no pending order
+        self.order = None
+
+        
+        
+    def notify_trade(self, trade):
+        if not trade.isclosed:
+            return
+
+        print(f'OPERATION PROFIT, GROSS {trade.pnl}, NET {trade.pnlcomm}')
+        self.log(f'OPERATION PROFIT, GROSS {trade.pnl}, NET {trade.pnlcomm}')
+    
+        
+           

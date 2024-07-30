@@ -1,0 +1,11 @@
+yfinance
+pandas
+pandas_ta
+numpy==1.26.4
+plotly
+scipy
+backtrader
+#git+https://github.com/backtrader2/backtrader
+
+
+
