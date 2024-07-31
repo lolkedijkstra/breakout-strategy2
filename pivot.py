@@ -1,6 +1,4 @@
-import numpy as np
-import plotly.graph_objects as go
-
+from pandas import DataFrame, Series
 
 #
 # definitions
@@ -31,7 +29,7 @@ class Pivot:
 #       Pivot.LOW | Pivot.HIGH if both 
 #       Pivot.NONE if no pivot
 #
-def pivot_candle(data, candle_idx, pivot_window):
+def pivot_candle(data: DataFrame, candle_idx: int, pivot_window: int) -> int:
     
     if candle_idx < pivot_window or (candle_idx + pivot_window) >= len(data):
         return Pivot.NONE
@@ -54,70 +52,7 @@ def pivot_candle(data, candle_idx, pivot_window):
 
 
 
-def pivot(data, pivot_window):
+def pivot(data: DataFrame, pivot_window: int) -> Series:
     return data.apply(lambda x: pivot_candle(data, x.name, pivot_window), axis=1)   
  
-
-#
-# alternative to pivot_candle with Close instead of extreme
-#
-def pivot_candle_alt(data, candle_idx, pivot_window):
-    
-    if candle_idx < pivot_window or (candle_idx + pivot_window) >= len(data):
-        return Pivot.NONE
-    
-    r = range(candle_idx - pivot_window, candle_idx + pivot_window +1)
-    
-    pivot_low = Pivot.LOW  
-    for i in r:     # if current low < candle low, it's not a pivot
-        if data.iloc[i].Close < data.iloc[candle_idx].Close:
-            pivot_low = Pivot.NONE
-            break
-            
-    pivot_high = Pivot.HIGH
-    for i in r:     # if current high > candle high, it's not a pivot         
-        if data.iloc[i].Close > data.iloc[candle_idx].Close:
-            pivot_high = Pivot.NONE
-            break
-            
-    return pivot_high | pivot_low        
-
-
-def pivot_alt(data, pivot_window = Pivot.WINDOW):
-    return data.apply(lambda x: pivot_candle_alt(data, x.name, pivot_window), axis=1)   
-  
-
-
-#
-# plot
-#
-def pivot_plot(data):
-    
-    def ypos(x):
-        return x['Low']-1e-3 if x['pivot']==2 else x['High']+1e-3 if x['pivot']==1 else np.nan
-
-    data['delta-y'] = data.apply(lambda row: ypos(row), axis=1)
-
-    fig = go.Figure(data=[go.Candlestick(x=data.index,
-                open  = data['Open'],
-                high  = data['High'],
-                low   = data['Low'],
-                close = data['Close'])])
-
-    fig.add_scatter(
-            x      = data.index, 
-            y      = data['delta-y'], 
-            mode   = "markers",
-            marker = 
-                dict(
-                    size  = 5, 
-                    color = "MediumPurple"
-                    ),
-            name="pivot"
-        )
-
-    fig.update_layout(xaxis_rangeslider_visible=False)
-    fig.show()
-
-
 
