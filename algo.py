@@ -5,7 +5,6 @@ import statistics
 from trading import Signal
 from pivot import Pivot
 
-ZONE_N_PIVOTS = 3
 
 from backtrader import lineseries
 
