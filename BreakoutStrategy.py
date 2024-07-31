@@ -44,6 +44,7 @@ def log_signals(level, data, signals, s):
 
 
 #MAX_OPEN    = 2
+from array import array
 
 class BreakoutStrategy(Strategy):
     
@@ -72,7 +73,7 @@ class BreakoutStrategy(Strategy):
         gap_window   = 0, 
         pivot_window = 0,     
         zone_width   = 0, 
-        pivots       = []               
+        pivots       = [int]               
     )   
      
      
@@ -83,9 +84,8 @@ class BreakoutStrategy(Strategy):
         dt = dt or self.data.datetime.date(0)
         logger.log(BreakoutStrategy.LOG_LEVEL, '%s, %s' % (dt.isoformat(), txt))
 
-    
-    def calc_signals(self):        
-        from array import array
+    '''
+    def calc_signals(self):      
         sz = self.data.buflen()
         l_signal = array('i', [0] * sz)  
                 
@@ -101,7 +101,7 @@ class BreakoutStrategy(Strategy):
     
              
         return l_signal
-    
+    '''
     
     
     #
@@ -124,12 +124,24 @@ class BreakoutStrategy(Strategy):
 
         # get signals and reset signal index
         self.signal_idx = 0
-        self.signals = self.calc_signals()
+        #self.signals = self.calc_signals()
+        sz = self.data.buflen()
+        self.signals = array('i', [0] * sz)             
+        for idx in range(0, sz):
+            self.signals[idx] = algo.calc_signal(
+                                    data        = self.data, 
+                                    candle_idx  = idx,  
+                                    backcandles = self.params.backcandles, 
+                                    gap_window  = self.params.gap_window,
+                                    pivots      = self.params.pivots,
+                                    zone_height = self.params.zone_width
+                                    )
+    
              
         log_signals(logging.INFO, self.data, self.signals,  Signal.BUY | Signal.SELL )
         
     
-    def get_signal(self):
+    def get_signal(self) -> int:
         return self.signals[self.signal_idx]
    
     
