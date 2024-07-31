@@ -7,13 +7,13 @@ from pivot import Pivot
 
 ZONE_N_PIVOTS = 3
 
-
+from backtrader import lineseries
 
 class algo:   
     
     @staticmethod
-    def is_trend(close, open, ema, backcandles=10):    
-        ema_signal = [0.0]*len(close)
+    def is_trend(close:list[float], open:list[float], ema:list[float], backcandles:int=10) -> list[int]:    
+        ema_signal = [0]*len(close)
 
         for idx in range(backcandles, len(close)):
             upt = 2 # 0x0010
@@ -36,12 +36,12 @@ class algo:
     
 
     @staticmethod
-    def slice(data, b, e):
+    def slice(data: lineseries, b: int, e: int):
         return data.get(ago=e-data.buflen(), size=e-b)
       
 
     @staticmethod
-    def get_pivots(highlow, data, pivots):
+    def get_pivots(highlow: int, data: list[float], pivots: list[int]) -> list[float]:
         values = []
         for i in range(0, len(data)):
             if pivots[i] == highlow:
@@ -50,15 +50,17 @@ class algo:
         return values
 
     @staticmethod
-    def get_pivots_high(data, pivots):
+    def get_pivots_high(data: list[float], pivots: list[int]) -> list[float]:
         return algo.get_pivots(Pivot.HIGH, data, pivots)
 
     @staticmethod
-    def get_pivots_low(data, pivots):
+    def get_pivots_low(data: list[float], pivots: list[int]) -> list[float]:
         return algo.get_pivots(Pivot.LOW, data, pivots)
     
-   
-    def _check_breakout(f_breakout_test, values, zone_height, cclose):
+    
+    import typing
+    @staticmethod
+    def _check_breakout(f_breakout_test: typing.Callable[[float, float, float], int], values: list[float], zone_height: float, cclose: float) -> int:
         
         # helper function: check if pivots form a zone
         def _is_zone(values, mean, height):
@@ -85,8 +87,10 @@ class algo:
     # pivots        the array holding the pivots
     # zone_height   the absolute price fluctuation  
     #
+    #from backtrader.feed import Database
+   
     @staticmethod
-    def calc_signal(data, candle_idx, backcandles, gap_window, pivots, zone_height): 
+    def calc_signal(data, candle_idx: int, backcandles: int, gap_window: int, pivots: list[int], zone_height) -> int: 
         # gap_window must be >= pivot window to avoid look ahead bias     
         begin = candle_idx - backcandles - gap_window
         end   = candle_idx - gap_window   
