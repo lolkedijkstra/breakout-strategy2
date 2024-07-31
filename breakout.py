@@ -72,7 +72,7 @@ class Application :
             data = data[data['Volume'] != 0]             
             
         data.reset_index(drop=True, inplace=True)    
-        data = data[b:e] if e != None else data[b:]        
+        data = data[b:e] if e not in [-1] else data[b:]        
         
         if len(data) == 0:
             raise Exception(f'No data for ticker: {ticker}')              
@@ -252,8 +252,8 @@ def get_args():
     import argparse
     p = argparse.ArgumentParser()
     p.add_argument("ticker")
-    p.add_argument("begin")
-    p.add_argument("end")
+    p.add_argument("begin", help="for test data, first bar, else start date")
+    p.add_argument("end", help="for test data, stop bar (e=-1 indicates e is ignored), else stop date")
     
     p.add_argument("-c", "--config", help="configuration file")
     p.add_argument("-g", "--gap", type=int, help="gap window")
@@ -299,9 +299,7 @@ if __name__ == '__main__':
         
         data = None                     
         ticker = None
-        
-        print (args.ticker)
-        
+                
         if args.ticker in TEST: 
             Application.ticker = 'EURUSD'
             ticker = args.ticker.lower()
@@ -322,10 +320,9 @@ if __name__ == '__main__':
         Application.logger.info("START")                  
         Application.logger.info("\n")    
           
-
             
         if args.save:  
-            print('saving backup')    
+            print('saving backup...')    
             data.to_csv(f"out/{ticker.lower()}-{args.begin}-{args.end}-backup.csv")          
               
         # pre calculate pivots
