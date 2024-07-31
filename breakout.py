@@ -15,6 +15,7 @@ from backtrader.feeds import PandasData
 from BreakoutStrategy import BreakoutStrategy
 from pivot import * 
 
+
 pd.options.mode.copy_on_write = True
 LOGGING_DEFAULT = logging.INFO
 
@@ -30,13 +31,13 @@ class Application :
     NOW = pd.Timestamp.today().replace(microsecond=0)    
 
     logger = logging.getLogger()
-    log_level = None
+    log_level = LOGGING_DEFAULT
     ticker = None
    
     pivot_window = Pivot.WINDOW
     
     @staticmethod
-    def initialize():
+    def initialize() -> None:
         
         # create directories    
         make_dirs(Application.OUTPUT_DIR)
@@ -52,38 +53,41 @@ class Application :
                
     
     @staticmethod
-    def load_data(ticker, b, e):  
-        
-        if ticker in ['d', 'h', '5m']:
-            delimiter = ',' if ticker in ['d', 'h'] else ';'
-            data = pd.read_csv(f'data/eurusd_{ticker}.csv', delimiter=delimiter)
-            if not 'Date' in data.columns:
-                data = data.rename({"Gmt time": "Date"}, axis = 1)
-                data.Date = pd.to_datetime(data.Date, format="%d.%m.%Y %H:%M:%S.%f")
-                    
-            
-            if ticker == '5m':
-                data.Date = pd.to_datetime(data['Date'] + ' ' + data['Time'], format='%d/%m/%Y %H:%M:%S')
-                data = data.drop(columns=['Time'])
-            
-            data.set_index("Date")
-           
-            if ticker == 'h':
-                data = data[data['Volume'] != 0]
+    def load_data(ticker: str, b, e) -> DataFrame:
+        delimiter = ';' if ticker in ['5m', '5M'] else ','
+        data = pd.read_csv(f'data/eurusd_{ticker}.csv', delimiter=delimiter)
+        if not 'Date' in data.columns:
+            data = data.rename({"Gmt time": "Date"}, axis = 1)
+            data.Date = pd.to_datetime(data.Date, format="%d.%m.%Y %H:%M:%S.%f")
                 
-            data.reset_index(drop=True, inplace=True)    
-                    
-        else:                   
-            Application.ticker = ticker     
-            data = yf.download(ticker, start=b, end=e)             
-            data.reset_index(inplace = True, drop = False)
-            if "Date" in data.columns:  
-                data.set_index("Date")
+        
+        if ticker == '5m':
+            data.Date = pd.to_datetime(data['Date'] + ' ' + data['Time'], format='%d/%m/%Y %H:%M:%S')
+            data = data.drop(columns=['Time'])
+        
+        data.set_index("Date")
+        
+        # remove empty data
+        if ticker == 'h':
+            data = data[data['Volume'] != 0]             
             
+        data.reset_index(drop=True, inplace=True)    
+        data = data[b:e] if e != None else data[b:]        
+        
+        if len(data) == 0:
+            raise Exception(f'No data for ticker: {ticker}')              
+        return data
+ 
+    @staticmethod
+    def fetch_data(ticker: str, b: int, e: int) -> DataFrame:  
+        data = yf.download(ticker, start=b, end=e)             
+        data.reset_index(inplace = True, drop = False)
+        if "Date" in data.columns:  
+            data.set_index("Date")
+          
         if len(data) == 0:
             raise Exception(f'No data for ticker: {ticker}')       
         return data
- 
     
     @staticmethod
     def save_snapshot(data):
@@ -186,7 +190,7 @@ class Application :
         Application.logger.info(f'run: init cerebro...\n')
         cerebro = Cerebro(stdstats=True)
         cerebro.broker.setcash(10_000.0) 
-        #cerebro.broker.setcommission(commission=0.001)
+        cerebro.broker.setcommission(commission=0.001)
         cerebro.addsizer(PercentSizer, percents = 70)          
         
         initial_value = cerebro.broker.get_value()        
@@ -261,7 +265,7 @@ def get_args():
     p.add_argument("-o", "--optimize", action="store_true", help="testing parameter combinations")
     p.add_argument("-s", "--save", action="store_true", help="saving input to csv file")
     p.add_argument("-plot", "--plot", action="store_true", help="showing plot of pivots")
-    p.add_argument("-l", "--loglevel", help="loglevel (default=INFO)")
+    p.add_argument("-log", "--loglevel", help="loglevel (default=INFO)")
 
     return p.parse_args() 
     
@@ -280,45 +284,45 @@ def get_loglevel(loglevel):
 #
 # MAIN FUNDTION
 #
+from plotting import pivot_plot
 
 if __name__ == '__main__': 
+    
+    TEST = ['h', 'd', '5m', 'H', 'D', '5M']
 
     try:
         # read command line
         args = get_args()
-                             
+        
+        Application.log_level = get_loglevel(args.loglevel)                            
+        Application.initialize()         
+        
+        data = None                     
         ticker = None
-        if args.ticker in ('H', 'D', 'h', 'd', '5m'): 
+        
+        print (args.ticker)
+        
+        if args.ticker in TEST: 
             Application.ticker = 'EURUSD'
             ticker = args.ticker.lower()
-            b = None
-            e = None            
+            begin = int(args.begin) if args.begin else 0
+            end = int(args.end) if args.end else -1
+            Application.logger.info(f'data = {ticker}, [start, end] = [{begin}, {end}]\n')
+            data = Application.load_data(ticker, begin, end) 
         else: 
             ticker = args.ticker.upper()
             Application.ticker = ticker                         
             # mandatory 'begin' and 'end' cmd line arguments                                       
-            b = datetime.strptime(args.begin, '%Y%m%d').date()
-            e = datetime.strptime(args.end, '%Y%m%d').date()
+            bdate = datetime.strptime(args.begin, '%Y%m%d').date()
+            edate = datetime.strptime(args.end, '%Y%m%d').date()
+            Application.logger.info(f'data = {ticker}, [start, end] = [{bdate}, {edate}]\n')
+            data = Application.fetch_data(ticker, bdate, edate) 
  
-               
-        # initialize the application             
-        Application.log_level = get_loglevel(args.loglevel)                     
-        
-        Application.initialize()        
-        Application.logger.info("START")    
-               
-        Application.logger.info("\n")
-        Application.logger.info(f'{ticker} start: [{b}, end: {e}]\n')
-        
+                      
+        Application.logger.info("START")                  
+        Application.logger.info("\n")    
+          
 
-        # load data into pandas DataFrame        
-        data = Application.load_data(ticker, b, e) 
-        
-        # slice input     
-        if ticker.lower() in ['d', 'h', '5m']:   
-            data = data[int(args.begin):int(args.end)]
-        else:    
-            data [0:args.max] if args.max else data[0:]
             
         if args.save:  
             print('saving backup')    
@@ -344,10 +348,10 @@ if __name__ == '__main__':
         # execute (if both options are provided, optimize is ignored)
         if args.run:
             print("run...")
-            g = args.gap if args.gap else pivot_window+1
-            b = args.backcandles if args.backcandles else 39
-            z = args.zoneheight if args.zoneheight else None
-            Application.run(data, data['pivot'].array._ndarray, backcandles=b, gap=g, zoneheight=z, plot=args.plot) 
+            gp = args.gap if args.gap else pivot_window+1
+            bc = args.backcandles if args.backcandles else 39
+            zh = args.zoneheight if args.zoneheight else None
+            Application.run(data, data['pivot'].array._ndarray, backcandles=bc, gap=gp, zoneheight=zh, plot=args.plot) 
             
         elif args.optimize:
             print("optimize...")
