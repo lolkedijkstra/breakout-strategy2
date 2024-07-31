@@ -1,0 +1,54 @@
+{
+    "params": {
+        "bb_len":  30,
+        "bb_std":   2,
+        "bb_width": 0.00015,
+
+        "long_rsi_period": 14,
+        "short_rsi_period": 14,
+
+        "long_rsi_high": 95,
+        "long_rsi_low": 31,
+
+        "short_rsi_high": 85,
+        "short_rsi_low": 17,
+
+        "backtest": {
+            "long_rsi_period_range": [14, 30, 3],                
+            "enter_long_rsi_range":[20, 31, 2],
+            "close_long_rsi_range":[80, 91, 2],
+
+            "short_rsi_period_range": [14, 30, 3], 
+            "enter_short_rsi_range":[70, 91, 3],
+            "close_short_rsi_range":[20, 41, 3]          
+        } 
+    },
+
+    "options": {
+        "save_snapshot": true,
+        "print_info": true,
+        "print_signals": false,
+        "store_signals": true,
+        "store_actions": true,
+        "plotting": false,
+
+        "backtest": false, 
+        "heatmap": false,
+        "run": true,
+        "plot": true
+
+    },
+
+    "trading": {
+        "amount": 100000,
+        "size": 0.1,
+        "long": false,
+        "short": true,
+        "stoploss": 3,
+        "limit": 2
+    }
+    
+
+}
+
+         
