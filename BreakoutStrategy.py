@@ -62,8 +62,8 @@ class BreakoutStrategy(Strategy):
     #
     params = dict(
         ticker      = None,
-        tp_sl_ratio = 0,    
-        sl_distance = 0,         # distance % below or above current price depending on direction
+        tp_sl_ratio = 0.0,    
+        sl_distance = 0.0,         # distance % below or above current price depending on direction
         
         #
         # the following parameters will be received from cerebro
@@ -72,7 +72,7 @@ class BreakoutStrategy(Strategy):
         backcandles  = 0,     
         gap_window   = 0, 
         pivot_window = 0,     
-        zone_width   = 0, 
+        zone_height  = 0.0, 
         pivots       = [int]               
     )   
      
@@ -96,7 +96,7 @@ class BreakoutStrategy(Strategy):
                     backcandles = self.params.backcandles, 
                     gap_window  = self.params.gap_window,
                     pivots      = self.params.pivots,
-                    zone_height = self.params.zone_width
+                    zone_height = self.params.zone_height
                     )
     
              
@@ -121,6 +121,11 @@ class BreakoutStrategy(Strategy):
         #self.data['EMA'] = bt.indicators.ExponentialMovingAverage
         #self.data['ema_signal'] = is_trend(self.data, backcandles=10)
         
+        backcandles = self.params.backcandles 
+        gap_window  = self.params.gap_window
+        zone_height = self.params.zone_height  
+        
+        logger.info(f'backcandles: {backcandles}, gap window: {gap_window}, zone height: {zone_height}')    
 
         # get signals and reset signal index
         self.signal_idx = 0
@@ -134,7 +139,7 @@ class BreakoutStrategy(Strategy):
                                     backcandles = self.params.backcandles, 
                                     gap_window  = self.params.gap_window,
                                     pivots      = self.params.pivots,
-                                    zone_height = self.params.zone_width
+                                    zone_height = self.params.zone_height
                                     )
     
              

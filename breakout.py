@@ -24,6 +24,83 @@ def make_dirs(path: str):
         os.makedirs(path)
 
 
+
+from config import Options
+class RunParameters:  
+    
+    def __init__(self, opt, pvt=Pivot.WINDOW, gap=0, bc = 40, sld = 0.025, tpsl=1.9, zh=0.001, bof=1.84):
+        
+        if not opt is None:        
+            self.pivot_window: int = Run.pivot_window if not Run.pivot_window is None else Pivot.WINDOW
+            self.gap_window: int = Run.gap_window if not Run.gap_window is None else self.pivot_window + 1
+            self.backcandles: int = Run.backcandles
+            self.sl_distance: float = Run.sl_distance
+            self.tp_sl_ratio: float = Run.tp_sl_ratio
+            self.zone_height: float = Run.zone_height
+            self.breakout_factor: float = Run.breakout_factor
+            
+            self.rsi_period: int = Run.rsi_period
+            self.open_long_rsi: float = Run.open_long_rsi
+            self.close_long_rsi: float = Run.close_long_rsi
+            self.open_short_rsi: float = Run.open_short_rsi
+            self.close_short_rsi: float = Run.close_short_rsi
+               
+        else:
+            self.pivot_window: int = pvt
+            self.gap_window: int = gap if gap != 0 else self.pivot_window + 1
+            self.backcandles: int = bc
+            self.sl_distance: float = sld
+            self.tp_sl_ratio: float = tpsl
+            self.zone_height: float = zh
+            self.breakout_factor: float = bof
+                
+            self.rsi_period: int = 14      
+            self.open_long_rsi: float = 31
+            self.close_long_rsi: float = 95
+            self.open_short_rsi: float = 85
+            self.close_short_rsi: float = 17
+
+
+from config import Optimize
+class OptParameters:  
+    
+    def __init__(self, 
+                 opt: Optimize,
+                 pvt = [Pivot.WINDOW], 
+                 gap = [Pivot.WINDOW+1], 
+                 bc  = [39, 40], 
+                 sld = [0.024 + x/1000 for x in range(0, 3)], 
+                 tpsl= [1.5 + x/10 for x in range(0, 5)], 
+                 zh  = [0.00090, 0.00095, 0.00100],
+                 bof = [1.84 + x/25 for x in range(0, 5)]):
+
+        if not opt is None:       
+            self.pivot_window = pvt
+            self.gap_window  = gap
+            self.backcandles = opt.get('backcandles')
+            self.sl_distance = opt.get('sl_distance')
+            self.tp_sl_ratio = opt.get('tp_sl_ratio')
+            self.zone_height = opt.get('zone_height')
+            self.breakout_factor = opt.get('breakout_factor')
+            
+        else:
+            self.pivot_window = pvt
+            self.gap_window  = gap
+            self.backcandles = bc
+            self.sl_distance = sld
+            self.tp_sl_ratio = tpsl
+            self.zone_height = zh
+            self.breakout_factor = bof
+        
+        #self.rsi_period: int = Run.rsi_period
+        #self.open_long_rsi: float = Run.open_long_rsi
+        #self.close_long_rsi: float = Run.close_long_rsi
+        #self.open_short_rsi: float = Run.open_short_rsi
+        #self.close_short_rsi: float = Run.close_short_rsi
+               
+
+
+
 class Application :
     CONFIG_DIR = 'conf'
     OUTPUT_DIR = 'out'
@@ -106,8 +183,9 @@ class Application :
     from backtrader.sizers import PercentSizer       
     
     @staticmethod
-    def optimize(data, pivots):
+    def optimize(data: DataFrame, par: OptParameters):
         Application.logger.info(f'optimize: {Application.ticker}...\n')
+        pivots = data['pivot'].array._ndarray
         pdata = PandasData(dataname=data, datetime=None, open=0, high=1, low=2, close=3, volume=4, openinterest=-1)
         
         Application.logger.info(f'optimize: init cerebro...\n')
@@ -119,29 +197,23 @@ class Application :
         initial_value = cerebro.broker.get_value()
         cerebro.adddata(data=pdata)
 
-        TP_SL_RATIO     = [1.5 + x/10 for x in range(0, 5)]
-        SL_DISTANCE     = [0.024 + x/1000 for x in range(0, 3)]    
-        BACKCANDLES     = [39, 40]
-        ZONE_WIDTH      = [0.019, 0.020, 0.021, 0.022]
-        GAP_WINDOW      = range(35, 41)
-        
-        if GAP_WINDOW.start <= Pivot.WINDOW:
-            raise ValueError(f"gap must be greater than pivot window. gap={GAP_WINDOW.start}, pivot window={Pivot.WINDOW}")
+        Application.logger.info(f"optimize, par.zone_height, {par.zone_height}")
 
-        
         Application.logger.info(f'optimize: adding strategy...\n')
+        
+        print(par.zone_height)
         strats = cerebro.optstrategy(
             BreakoutStrategy,
                 ticker       = (Application.ticker,),
-                tp_sl_ratio  = TP_SL_RATIO,    
-                sl_distance  = SL_DISTANCE,
-                backcandles  = BACKCANDLES,
-                gap_window   = GAP_WINDOW, 
-                zone_width   = ZONE_WIDTH,
+                tp_sl_ratio  = par.tp_sl_ratio,    
+                sl_distance  = par.sl_distance,
+                backcandles  = par.backcandles,
+                gap_window   = par.gap_window, 
+                zone_height  = [0.001],#par.zone_height,
                 pivots       = (pivots,)
             ) 
-        
-        runs = len(TP_SL_RATIO) * len(SL_DISTANCE) * len(BACKCANDLES) * len(GAP_WINDOW) * len(ZONE_WIDTH)
+                
+        runs = len(par.tp_sl_ratio) * len(par.sl_distance) * len(par.backcandles) * len(par.gap_window) * len(par.zone_height)
         print(f"optimize, total number of runs: {runs}\n") 
         Application.logger.info(f'optimize: cerebro...{runs}\n')
         
@@ -151,13 +223,13 @@ class Application :
         cerebro.addanalyzer(Returns, _name = "returns") 
                   
         results = cerebro.run(maxcpus=1)
-        
+         
         par_list = [
             [   x[0].params.tp_sl_ratio,
                 x[0].params.sl_distance,
                 x[0].params.backcandles,             
                 x[0].params.gap_window,
-                x[0].params.zone_width,             
+                x[0].params.zone_height,             
                 
                 x[0].analyzers.returns.get_analysis()['rnorm100'], 
                 x[0].analyzers.drawdown.get_analysis()['max']['drawdown'],
@@ -180,10 +252,9 @@ class Application :
         
     
     @staticmethod
-    def run(data, pivots, backcandles, gap, zoneheight, plot: bool = False):  
-        if gap <= pivot_window:
-            raise ValueError(f"gap must be greater than pivot window. gap={gap}, pivot window={Pivot.WINDOW}")
-                 
+    def run(data: DataFrame, par: RunParameters, plot: bool = False):  
+          
+        pivots = data['pivot'].array._ndarray    
         Application.logger.info(f'run: {Application.ticker}...\n')
         pdata = PandasData(dataname=data, datetime=None, open=0, high=1, low=2, close=3, volume=4, openinterest=-1)
         
@@ -197,42 +268,28 @@ class Application :
 
         cerebro.adddata(data=pdata)
 
-    
-        GAP_WINDOW      = gap if gap != None else Pivot.WINDOW + 1
-        BACKCANDLES     = backcandles if backcandles != None else 40
-        SL_DISTANCE     = 0.026
-        TP_SL_RATIO     = 1.9
-        ZONE_WIDTH      = zoneheight if zoneheight != None else 0.022
-        BREAKOUT_FACTOR = 1.84 # mot used
-        
-        '''
-        GAP_WINDOW      = 7
-        BACKCANDLES     = 40
-        SL_DISTANCE     = 0.03
-        TP_SL_RATIO     = 2
-        ZONE_WIDTH      = 0.01
-        BREAKOUT_FACTOR = 1.84
-        '''    
         Application.logger.info(f'run: adding strategy...\n')
         cerebro.addstrategy(
             BreakoutStrategy,
                 ticker       = Application.ticker,
-                tp_sl_ratio  = TP_SL_RATIO,    
-                sl_distance  = SL_DISTANCE,
-                backcandles  = BACKCANDLES,
-                gap_window   = GAP_WINDOW, 
-                zone_width   = ZONE_WIDTH,
+                tp_sl_ratio  = par.tp_sl_ratio,   
+                sl_distance  = par.sl_distance,
+                backcandles  = par.backcandles,
+                gap_window   = par.gap_window, 
+                zone_height  = par.zone_height,
                 pivots       = pivots
             ) 
             
         #cerebro.addsizer(PercentSizer, percents = 90)   
         Application.logger.info(f'run: cerebro...\n')
+        Application.logger.info(f"run, par.zone_height, {par.zone_height}")
+
               
         cerebro.run()
         
         end_value = cerebro.broker.get_value()
         profit    = end_value-initial_value
-        gain      = 100*profit / initial_value
+        gain      = 100.0 * profit / initial_value
         
         
         print(f"\nstart: \t{data.index[0]}\nend: \t{data.index[-1]}\nduration: \t{data.index[-1]-data.index[0]}\nstart value: \t{initial_value:8.2f}\nend value: \t{end_value:8.2f}\nprofit: \t{profit:8.2f}\ngain: \t{gain:8.2f}%")
@@ -255,14 +312,14 @@ def get_args():
     p.add_argument("begin", help="for test data, first bar, else start date")
     p.add_argument("end", help="for test data, stop bar (e=-1 indicates e is ignored), else stop date")
     
-    p.add_argument("-c", "--config", help="configuration file")
+    p.add_argument("-c", "--config", help="configuration file (json)")
     p.add_argument("-g", "--gap", type=int, help="gap window")
     p.add_argument("-b", "--backcandles", type=int, help="number of bars in zone (backcandles)")
     p.add_argument("-p", "--pwindow", type=int, help="number of bars in pivot window")
     p.add_argument("-z", "--zoneheight", type=float, help="height of zone in fraction of price")
     p.add_argument("-m", "--max", type=int, help="max no of bars from start")
     p.add_argument("-r", "--run", action="store_true", help="normal mode of operation")
-    p.add_argument("-o", "--optimize", action="store_true", help="testing parameter combinations")
+    p.add_argument("-o", "--optimize", action="store_true", help="optimization")
     p.add_argument("-s", "--save", action="store_true", help="saving input to csv file")
     p.add_argument("-plot", "--plot", action="store_true", help="showing plot of pivots")
     p.add_argument("-log", "--loglevel", help="loglevel (default=INFO)")
@@ -278,7 +335,7 @@ def get_loglevel(loglevel):
     return logging.getLevelName(loglevel.upper())
 
 
-
+    
 
 
 #
@@ -295,11 +352,15 @@ if __name__ == '__main__':
         args = get_args()
         
         Application.log_level = get_loglevel(args.loglevel)                            
-        Application.initialize()         
+        Application.initialize()     
         
+        Application.logger.info("START")                  
+                
         data = None                     
         ticker = None
-                
+              
+        # loading data    
+        print("loading data...")    
         if args.ticker in TEST: 
             Application.ticker = 'EURUSD'
             ticker = args.ticker.lower()
@@ -315,16 +376,8 @@ if __name__ == '__main__':
             edate = datetime.strptime(args.end, '%Y%m%d').date()
             Application.logger.info(f'data = {ticker}, [start, end] = [{bdate}, {edate}]\n')
             data = Application.fetch_data(ticker, bdate, edate) 
- 
-                      
-        Application.logger.info("START")                  
-        Application.logger.info("\n")    
-          
-            
-        if args.save:  
-            print('saving backup...')    
-            data.to_csv(f"out/{ticker.lower()}-{args.begin}-{args.end}-backup.csv")          
-              
+                       
+    
         # pre calculate pivots
         print('calculating pivots...')
         pivot_window = args.pwindow if args.pwindow else Pivot.WINDOW
@@ -335,24 +388,73 @@ if __name__ == '__main__':
             pivot_plot(data)
             
         data.set_index("Date", inplace=True, drop=True)
-        data.reset_index() 
+        data.reset_index()         
         
-        # backup for reference 
-        if args.save:  
-            print('saving backup')    
-            #data.to_csv(f"out/{ticker.lower()}-{args.begin}-{args.end}-backup.csv")           
-        
-        # execute (if both options are provided, optimize is ignored)
-        if args.run:
-            print("run...")
-            gp = args.gap if args.gap else pivot_window+1
-            bc = args.backcandles if args.backcandles else 39
-            zh = args.zoneheight if args.zoneheight else None
-            Application.run(data, data['pivot'].array._ndarray, backcandles=bc, gap=gp, zoneheight=zh, plot=args.plot) 
+        #
+        # using specified config file 
+        #  
+        if args.config:
+            import config
+            from config import Config, Options, Optimize, load_config
+            configuration: Config = load_config(args.config)
+            #config.check_config()  
             
-        elif args.optimize:
-            print("optimize...")
-            Application.optimize(data, data['pivot'].array._ndarray) 
+            options: Options = configuration.opt
+            
+            if options.get('save_snapshot'): 
+                data.to_csv(f"out/{ticker.lower()}-{args.begin}-{args.end}-backup.csv")
+            
+            if options.get('store_signals'):
+                pass
+             
+            if options.get('store_actions'): 
+                pass
+            
+            
+            if options.get('run'): 
+                print("run...")
+                parameters = RunParameters(config=True)
+                Application.run(data=data, par=parameters, plot=False) 
+             
+            elif options.get('optimize'):
+                print("optimize...") 
+                parameters = OptParameters(opt=configuration.optim)
+                Application.optimize(data=data, par=parameters)
+
+            
+            if options.get('plotting'): 
+                pass                   
+ 
+ 
+ 
+        #
+        # command line options
+        #        
+        
+        else:                    
+            # backup for reference            
+            if args.save:  
+                print('saving backup...')    
+                data.to_csv(f"out/{ticker.lower()}-{args.begin}-{args.end}-backup.csv")          
+                
+      
+            
+            # execute 
+            if args.run:
+                print("run...")
+                zh = args.zoneheight
+                parameters = RunParameters(config=False, zh=zh) \
+                                if not zh is None \
+                                else RunParameters(config=False)
+                                
+                Application.run(data=data, par=parameters, plot=args.plot) 
+             
+            elif args.optimize:
+                print("optimize...") 
+                parameters = OptParameters(opt=config.optim)
+                Application.optimize(data=data, par=parameters)
+                   
+            
             
   
     except Exception as e:

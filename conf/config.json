@@ -1,51 +1,69 @@
 {
-    "params": {
-        "bb_len":  30,
-        "bb_std":   2,
-        "bb_width": 0.00015,
+    "run": {
+        "_comment": "runtime parameters",
 
-        "long_rsi_period": 14,
-        "short_rsi_period": 14,
+        "pivot_window":     6,
+        "gap_window":       7,
+        "backcandles":      40,
 
-        "long_rsi_high": 95,
-        "long_rsi_low": 31,
+        "sl_distance":      0.025,
+        "tp_sl_ratio":      1.9, 
+        "zone_height":      0.01,
+        "breakout_factor":  1.84,
+		
+        "rsi_period":       14,
 
-        "short_rsi_high": 85,
-        "short_rsi_low": 17,
+        "open_long_rsi":    31,
+        "close_long_rsi":   95,
 
-        "backtest": {
-            "long_rsi_period_range": [14, 30, 3],                
-            "enter_long_rsi_range":[20, 31, 2],
-            "close_long_rsi_range":[80, 91, 2],
+        "open_short_rsi":   85,
+        "close_short_rsi":  17
+    },
 
-            "short_rsi_period_range": [14, 30, 3], 
-            "enter_short_rsi_range":[70, 91, 3],
-            "close_short_rsi_range":[20, 41, 3]          
-        } 
+    "optimize": {
+        "_comment": [
+            "runtime parameters for testing ranges of values",
+            "it's possible to specify either ranges or arrays",
+            "if a single value is used, use an array with a single value",
+            "in the case of ranges, the step is mandatory"   
+            ],
+
+        "backcandles":      [36, 40, 1],
+
+        "sl_distance":      [0.025, 0.026, 0.027],
+        "tp_sl_ratio":      [1.85, 1.90, 1.95, 2.00],
+        "zone_height":      [0.00090, 0.00095, 0.00100],
+        "breakout_factor":  [1.80, 1.84, 1.88, 1.92, 1.96, 2.00],
+
+        "rsi_period":       [14],
+        
+        "open_long_rsi":    [20, 33, 3],
+        "close_long_rsi":   [80, 91, 2],
+
+        "open_short_rsi":   [82, 88, 2], 
+        "close_short_rsi":  [20, 41, 3]          
     },
 
     "options": {
-        "save_snapshot": true,
-        "print_info": true,
-        "print_signals": false,
-        "store_signals": true,
-        "store_actions": true,
-        "plotting": false,
+        "_comment": "runtime options",
 
-        "backtest": false, 
-        "heatmap": false,
-        "run": true,
-        "plot": true
+        "save_snapshot":    true,
+        "store_signals":    true,
+        "store_actions":    true,
+        "plotting":         false,
+
+        "optimize":         true, 
+        "run":              false
 
     },
 
     "trading": {
-        "amount": 100000,
-        "size": 0.1,
-        "long": false,
-        "short": true,
-        "stoploss": 3,
-        "limit": 2
+        "_comment": "trading parameters",
+
+        "amount":           100000,
+        "size":             0.9,
+        "long":             true,
+        "short":            true
     }
     
 

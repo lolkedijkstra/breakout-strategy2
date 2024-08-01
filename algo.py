@@ -62,9 +62,10 @@ class algo:
     def _check_breakout(f_breakout_test: typing.Callable[[float, float, float], int], values: list[float], zone_height: float, cclose: float) -> int:
         
         # helper function: check if pivots form a zone
-        def _is_zone(values, mean, height):
-            for values in values:
-                if abs(values-mean) > height:
+        #def _is_zone(values , mean, height):
+        def _is_zone(values: list[float], mean: float, height: float):
+            for value in values:
+                if abs(value-mean) > height:
                     return False   
             return True
 
@@ -89,7 +90,9 @@ class algo:
     #from backtrader.feed import Database
    
     @staticmethod
-    def calc_signal(data, candle_idx: int, backcandles: int, gap_window: int, pivots: list[int], zone_height) -> int: 
+    def calc_signal(data, candle_idx: int, backcandles: int, gap_window: int, pivots: list[int], zone_height: float) -> int: 
+        #print( backcandles, gap_window, zone_height)
+        
         # gap_window must be >= pivot window to avoid look ahead bias     
         begin = candle_idx - backcandles - gap_window
         end   = candle_idx - gap_window   
@@ -122,7 +125,7 @@ class algo:
       
         highs = data.high.array
         pvts = algo.get_pivots_high(data=highs[begin:end], pivots=pivots[begin:end])[-_N:]
-        
+                
         if _N == len(pvts):      
             sig = algo._check_breakout(
                 lambda mean, cclose, zheight: (Signal.BUY if (cclose - mean) > zheight * _F else 0),   
