@@ -1,6 +1,7 @@
 import config
 from pivot import Pivot
 
+# parameters for regular run
 class RunParameters:  
     
     def __init__(self, conf: config.RunOptions):
@@ -67,8 +68,9 @@ class RunParameters:
         tag = "close_short_rsi"
         if conf.has(tag):            
             self.close_short_rsi: float = conf.get(tag)
+ 
                
-
+# parameters for optimization run
 class OptParameters:    
     
     def __init__(self, conf: config.Optimize): 

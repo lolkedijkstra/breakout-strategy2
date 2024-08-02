@@ -107,6 +107,28 @@ class Application :
     def result():
         pass
  
+ 
+    @staticmethod
+    def save_optim_results(results):
+        par_list = [
+                [   x[0].params.tp_sl_ratio,
+                    x[0].params.sl_distance,
+                    x[0].params.backcandles,             
+                    x[0].params.gap_window,
+                    x[0].params.zone_height, 
+                    x[0].params.breakout_f,            
+                    
+                    x[0].analyzers.returns.get_analysis()['rnorm100'], 
+                    x[0].analyzers.drawdown.get_analysis()['max']['drawdown'],
+                    x[0].analyzers.sharpe.get_analysis()['sharperatio']
+                ] for x in results 
+            ]
+            
+        par_df = DataFrame(par_list, columns = ['tp-sl', 'stoploss-d', 'back', 'gap', 'zone-height', 'bof', 'profit', 'max-dd', 'sharpe'])
+        par_df.to_csv(f'out/{Application.ticker}-{Application.NOW.date().strftime("%Y%m%d")}_results.csv')    
+    
+        
+ 
     from backtrader.sizers import PercentSizer       
     
     @staticmethod
@@ -122,7 +144,6 @@ class Application :
         cerebro.broker.setcommission(commission=0.001)
         cerebro.addsizer(PercentSizer, percents = 90)          
          
-        initial_value = cerebro.broker.get_value()
         cerebro.adddata(data=pdata)
 
         Application.logger.info(f"optimize, par.zone_height, {par.zone_height}")
@@ -137,7 +158,9 @@ class Application :
                 sl_distance  = par.sl_distance,
                 backcandles  = par.backcandles,
                 gap_window   = par.gap_window, 
-                zone_height  = [0.001],#par.zone_height,
+                zone_height  = par.zone_height,
+                breakout_f   = par.breakout_factor,
+                
                 pivots       = (pivots,)
             ) 
                 
@@ -149,54 +172,38 @@ class Application :
         cerebro.addanalyzer(SharpeRatio, _name = "sharpe")
         cerebro.addanalyzer(DrawDown, _name = "drawdown")
         cerebro.addanalyzer(Returns, _name = "returns") 
-                  
-        results = cerebro.run(maxcpus=1)
          
-        par_list = [
-            [   x[0].params.tp_sl_ratio,
-                x[0].params.sl_distance,
-                x[0].params.backcandles,             
-                x[0].params.gap_window,
-                x[0].params.zone_height,             
-                
-                x[0].analyzers.returns.get_analysis()['rnorm100'], 
-                x[0].analyzers.drawdown.get_analysis()['max']['drawdown'],
-                x[0].analyzers.sharpe.get_analysis()['sharperatio']
-            ] for x in results 
-        ]
-        
-        par_df = DataFrame(par_list, columns = ['tp-sl', 'stoploss-d', 'back-w', 'gap-w', 'zone-width', 'profit', 'dd', 'sharpe'])
-        par_df.to_csv(f'out/{Application.ticker}-results.csv')
-                
+        initial_value = cerebro.broker.get_value()                 
+        results = cerebro.run(maxcpus=1)                        
         end_value = cerebro.broker.get_value()
+        
         profit    = end_value-initial_value
         gain      = 100*profit / initial_value
         
         print(f"\nstart value: {initial_value:8.2f}\nend value: {end_value: 11.2f}\nprofit:{profit:15.2f}\ngain: {gain:16.2f}%")
-        
-        Application.logger.info(f"START VALUE: {initial_value:8.2f}, END VALUE: {end_value:8.2f}, PROFIT: {profit:8.2f}, PERC: {gain:4.2f}")          
+        Application.logger.info(f"START VALUE: {initial_value:8.2f}, END VALUE: {end_value:8.2f}, PROFIT: {profit:8.2f}, PERC: {gain:4.2f}")    
             
+        Application.save_optim_results(results)  
+                 
         print('\ndone.')
         
     
     @staticmethod
     def run(data: DataFrame, par: RunParameters, plot: bool = False):  
           
-        pivots = data['pivot'].array._ndarray    
         Application.logger.info(f'run: {Application.ticker}...\n')
+        pivots = data['pivot'].array._ndarray    
         pdata = PandasData(dataname=data, datetime=None, open=0, high=1, low=2, close=3, volume=4, openinterest=-1)
         
-        Application.logger.info(f'run: init cerebro...\n')
+        Application.logger.debug(f'run: init cerebro...\n')
         cerebro = Cerebro(stdstats=True)
         cerebro.broker.setcash(10_000.0) 
         cerebro.broker.setcommission(commission=0.001)
-        cerebro.addsizer(PercentSizer, percents = 70)          
-        
-        initial_value = cerebro.broker.get_value()        
+        cerebro.addsizer(PercentSizer, percents = 70)                 
 
         cerebro.adddata(data=pdata)
 
-        Application.logger.info(f'run: adding strategy...\n')
+        Application.logger.debug(f'run: adding strategy...\n')
         cerebro.addstrategy(
             BreakoutStrategy,
                 ticker       = Application.ticker,
@@ -205,23 +212,20 @@ class Application :
                 backcandles  = par.backcandles,
                 gap_window   = par.gap_window, 
                 zone_height  = par.zone_height,
+                breakout_f   = par.breakout_factor,
                 pivots       = pivots
             ) 
             
-        #cerebro.addsizer(PercentSizer, percents = 90)   
-        Application.logger.info(f'run: cerebro...\n')
-        Application.logger.info(f"run, par.zone_height, {par.zone_height}")
-
+        Application.logger.debug(f'run: cerebro...\n')
               
-        cerebro.run()
-        
+        initial_value = cerebro.broker.get_value()       
+        results = cerebro.run()
         end_value = cerebro.broker.get_value()
+        
         profit    = end_value-initial_value
         gain      = 100.0 * profit / initial_value
-        
-        
-        print(f"\nstart: \t{data.index[0]}\nend: \t{data.index[-1]}\nduration: \t{data.index[-1]-data.index[0]}\nstart value: \t{initial_value:8.2f}\nend value: \t{end_value:8.2f}\nprofit: \t{profit:8.2f}\ngain: \t{gain:8.2f}%")
-        
+               
+        print(f"\nstart: \t{data.index[0]}\nend: \t{data.index[-1]}\nduration: \t{data.index[-1]-data.index[0]}\nstart value: \t{initial_value:8.2f}\nend value: \t{end_value:8.2f}\nprofit: \t{profit:8.2f}\ngain: \t{gain:8.2f}%")        
         Application.logger.info(f"START VALUE: {initial_value:8.2f}, END VALUE: {end_value:8.2f}, PROFIT: {profit:8.2f}, PERC: {gain:4.2f}")
                
         if plot:
@@ -323,33 +327,27 @@ if __name__ == '__main__':
         # using specified config file 
         #  
         if args.config:
-            configuration: Config = config.load_config(args.config)
-            #config.check_config()  
+            configuration: Config = config.load_config(args.config)            
+            options: Options = configuration.options
             
-            options: Options = configuration.opt
+            if options.get('save_snapshot'): 
+                data.to_csv(f"out/{ticker.lower()}-{args.begin}-{args.end}-backup.csv")            
             
-            if options.has('save_snapshot'): 
-                data.to_csv(f"out/{ticker.lower()}-{args.begin}-{args.end}-backup.csv")
-            
-            if options.has('store_signals'):
-                pass
-             
-            if options.has('store_actions'): 
+            if options.get('store_signals'):
                 pass
             
+            if options.get('store_actions'): 
+                pass
             
-            if options.has('run'): 
-                print("run...")
+            if options.get('run'): 
                 parameters = RunParameters(conf=configuration.run)
                 Application.run(data=data, par=parameters, plot=False) 
              
-            elif options.has('optimize'):
-                print("optimize...") 
+            elif options.get('optimize'):
                 parameters = OptParameters(conf=configuration.optim)
                 Application.optimize(data=data, par=parameters)
-
-            
-            if options.has('plotting'): 
+           
+            if options.get('plotting'): 
                 pass                   
  
  

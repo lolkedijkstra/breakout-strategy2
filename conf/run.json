@@ -1,6 +1,10 @@
 {
     "run": {
-        "_comment": "runtime parameters",
+        "_comment": [
+            "runtime parameters for regular run",
+
+            "same tags must be used in this segment and config.RunOptions"
+            ],
 
         "pivot_window":     6,
         "gap_window":       7,
@@ -8,8 +12,8 @@
 
         "sl_distance":      0.025,
         "tp_sl_ratio":      1.9, 
-        "zone_height":      0.01,
-        "breakout_factor":  1.84,
+        "zone_height":      0.001,
+        "breakout_factor":  2,
 		
         "rsi_period":       14,
 
@@ -25,7 +29,9 @@
             "runtime parameters for testing ranges of values",
             "it's possible to specify either ranges or arrays",
             "if a single value is used, use an array with a single value",
-            "in the case of ranges, the step is mandatory"   
+            "in the case of ranges, the step is mandatory",
+            
+            "same tags must be used in this segment and config.Optimize"
             ],
 
         "backcandles":      [36, 40, 1],

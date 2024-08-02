@@ -90,7 +90,7 @@ class algo:
     #from backtrader.feed import Database
    
     @staticmethod
-    def calc_signal(data, candle_idx: int, backcandles: int, gap_window: int, pivots: list[int], zone_height: float) -> int: 
+    def calc_signal(data, candle_idx: int, backcandles: int, gap_window: int, pivots: list[int], zone_height: float, breakout_f: float) -> int: 
         #print( backcandles, gap_window, zone_height)
         
         # gap_window must be >= pivot window to avoid look ahead bias     
@@ -101,8 +101,8 @@ class algo:
             return 0
         
                 
-        _F = 2.0    # optimal value??
-        _N = 3      # number of bounces
+        _F = breakout_f     # breakout factor
+        _N = 3              # number of bounces
         sig = Signal.NONE    
             
         cclose = data.close.array[candle_idx]                     

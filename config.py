@@ -30,12 +30,9 @@ class _Options:
         
         return value 
       
-    def add(self, tag, value=None):
-        value = self._check_value(tag, value)            
-        self.nodes[tag] = value
-
     def get(self, tag):
         return self.nodes.get(tag)
+       
     
     def has(self, tag):
         return tag in self.nodes
@@ -46,7 +43,13 @@ class Options(_Options):
         'save_snapshot','store_signals','store_actions','optimize','run','plotting'
     ]        
        
-class RunOptions(_Options):
+    def add(self, tag, value=None):
+        value = self._check_value(tag, value)            
+        self.nodes[tag] = value
+
+       
+       
+class RunOptions(Options):
     tags = [
         'pivot_window',
         'gap_window',
@@ -66,7 +69,7 @@ class RunOptions(_Options):
         'close_short_rsi'
     ]
            
-class TradingOptions(_Options):
+class TradingOptions(Options):
     tags = [
         'amount', 'size', 'long', 'short'
     ]   
@@ -107,7 +110,7 @@ class Optimize(_Options):
 
 class Config:
     def __init__(self, opt: Options, run: RunOptions, optim: Optimize, trading: TradingOptions):
-        self.opt = opt        
+        self.options = opt        
         self.run = run
         self.optim = optim
         self.trading = trading
@@ -124,22 +127,21 @@ def load_config(configfile: str) -> Config:
     tra: TradingOptions = None
     optim: Optimize = None
     
-
     try:
         with open(configfile, "r") as fconf:
             c = json.load(fconf)     
              
-            if not c['options'] is None:      
+            if 'options' in c:      
                 opt = Options(c['options'])
                 for tag in Options.tags:
                     opt.add(tag)
                 
-            if not c['run'] is None:
+            if 'run' in c:
                 run = RunOptions(c['run'])
                 for tag in RunOptions.tags:
                     run.add(tag)
                     
-            if not c['optimize'] is None:
+            if 'optimize' in c:
                 optim = Optimize(c.get('optimize'))
                 
                 optim.add_int('backcandles')               
@@ -154,7 +156,7 @@ def load_config(configfile: str) -> Config:
                 optim.add_float('breakout_factor')
                 
                 		
-            if not c['trading'] is None:
+            if 'trading' in c:
                 tra = TradingOptions(c['trading'])
                 for tag in TradingOptions.tags:
                     tra.add(tag)

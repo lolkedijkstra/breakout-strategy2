@@ -8,7 +8,7 @@
 
         "sl_distance":      0.025,
         "tp_sl_ratio":      1.9, 
-        "zone_height":      0.01,
+        "zone_height":      0.001,
         "breakout_factor":  1.84,
 		
         "rsi_period":       14,
@@ -33,7 +33,7 @@
         "sl_distance":      [0.025, 0.026, 0.027],
         "tp_sl_ratio":      [1.85, 1.90, 1.95, 2.00],
         "zone_height":      [0.00090, 0.00095, 0.00100],
-        "breakout_factor":  [1.80, 1.84, 1.88, 1.92, 1.96, 2.00],
+        "breakout_factor":  [1.0, 4.0, 1.0],
 
         "rsi_period":       [14],
         

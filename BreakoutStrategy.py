@@ -72,7 +72,8 @@ class BreakoutStrategy(Strategy):
         backcandles  = 0,     
         gap_window   = 0, 
         pivot_window = 0,     
-        zone_height  = 0.0, 
+        zone_height  = 0.0,
+        breakout_f   = 0.0,
         pivots       = [int]               
     )   
      
@@ -83,25 +84,6 @@ class BreakoutStrategy(Strategy):
     def log(self, txt, dt=None):        
         dt = dt or self.data.datetime.date(0)
         logger.log(BreakoutStrategy.LOG_LEVEL, '%s, %s' % (dt.isoformat(), txt))
-
-    '''
-    def calc_signals(self):      
-        sz = self.data.buflen()
-        l_signal = array('i', [0] * sz)  
-                
-        for idx in range(0, sz):
-            l_signal[idx] = algo.calc_signal(
-                    data        = self.data, 
-                    candle_idx  = idx,  
-                    backcandles = self.params.backcandles, 
-                    gap_window  = self.params.gap_window,
-                    pivots      = self.params.pivots,
-                    zone_height = self.params.zone_height
-                    )
-    
-             
-        return l_signal
-    '''
     
     
     #
@@ -109,7 +91,7 @@ class BreakoutStrategy(Strategy):
     #
     def __init__(self):  
                        
-        logger.info(f"Calculating signals...{BreakoutStrategy.run_nr}")
+        print(f"calculating signals, run no: {BreakoutStrategy.run_nr}")
         
         # keep track of pending orders
         self.order = None
@@ -121,29 +103,29 @@ class BreakoutStrategy(Strategy):
         #self.data['EMA'] = bt.indicators.ExponentialMovingAverage
         #self.data['ema_signal'] = is_trend(self.data, backcandles=10)
         
-        backcandles = self.params.backcandles 
-        gap_window  = self.params.gap_window
-        zone_height = self.params.zone_height  
-        
-        logger.info(f'backcandles: {backcandles}, gap window: {gap_window}, zone height: {zone_height}')    
+        bc = self.params.backcandles 
+        gw = self.params.gap_window
+        zh = self.params.zone_height  
+        bf = self.params.breakout_f    
+        logger.debug(f'backcandles: {bc}, gap window: {gw}, zone height: {zh}, breakout_factor: {bf}')    
 
         # get signals and reset signal index
         self.signal_idx = 0
-        #self.signals = self.calc_signals()
         sz = self.data.buflen()
         self.signals = array('i', [0] * sz)             
         for idx in range(0, sz):
             self.signals[idx] = algo.calc_signal(
                                     data        = self.data, 
                                     candle_idx  = idx,  
-                                    backcandles = self.params.backcandles, 
-                                    gap_window  = self.params.gap_window,
+                                    backcandles = bc, 
+                                    gap_window  = gw,
                                     pivots      = self.params.pivots,
-                                    zone_height = self.params.zone_height
+                                    zone_height = zh,
+                                    breakout_f  = bf
                                     )
     
              
-        log_signals(logging.INFO, self.data, self.signals,  Signal.BUY | Signal.SELL )
+        log_signals(logging.DEBUG, self.data, self.signals,  Signal.BUY | Signal.SELL )
         
     
     def get_signal(self) -> int:
