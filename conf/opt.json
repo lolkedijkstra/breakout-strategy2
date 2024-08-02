@@ -1,6 +1,27 @@
-{
+{ 
+    "options": {
+        "_comment": [
+            "runtime options",
+    
+        "===========================================================",           
+        "same tags must be used in this segment and config.Options",
+        "==========================================================="
+        ],
+
+        "save_snapshot":    true,
+        "store_signals":    true,
+        "store_actions":    true,
+        "plotting":         false,
+
+        "optimize":         true, 
+        "run":              false
+
+    },
+
+    
     "run": {
-        "_comment": ["runtime parameters",
+        "_comment": [
+            "runtime parameters",
 
         "============================================================",
         "same tags must be used in this segment and config.RunOptions",
@@ -25,6 +46,7 @@
         "close_short_rsi":  17
     },
 
+
     "optimize": {
         "_comment": [
             "runtime parameters for testing ranges of values",
@@ -37,7 +59,7 @@
         "==========================================================="           
         ],
 
-        "backcandles":      [36, 40, 1],
+        "backcandles":      [37, 41, 1],
 
         "sl_distance":      [0.025, 0.026, 0.027],
         "tp_sl_ratio":      [1.85, 1.90, 1.95, 2.00],
@@ -53,26 +75,10 @@
         "close_short_rsi":  [20, 41, 3]          
     },
 
-    "options": {
-        "_comment": ["runtime options",
     
-        "===========================================================",           
-        "same tags must be used in this segment and config.Options",
-        "==========================================================="
-        ],
-
-        "save_snapshot":    true,
-        "store_signals":    true,
-        "store_actions":    true,
-        "plotting":         false,
-
-        "optimize":         false, 
-        "run":              true
-
-    },
-
     "trading": {
-        "_comment": ["trading parameters",
+        "_comment": [
+            "trading parameters",
 
         "================================================================",           
         "same tags must be used in this segment and config.TradingOptions",
@@ -81,6 +87,7 @@
 
         "amount":           100000,
         "size":             0.9,
+        "commission":       0.001,
         "long":             true,
         "short":            true
     }

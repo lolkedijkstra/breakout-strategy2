@@ -52,6 +52,9 @@ class BreakoutStrategy(Strategy):
     LOG_ORDERS = False
 
     LOG_LEVEL = logging.INFO
+    
+    LONG = True
+    SHORT = False
 
     run_nr = 0
     
@@ -158,25 +161,27 @@ class BreakoutStrategy(Strategy):
             match self.get_signal(): 
                 
                 case Signal.SELL: 
-                    stop1  = close * (1.0 + s_fac)
-                    limit1 = close * (1.0 - r * s_fac)   
-                    
-                    self.log(f'OPEN SELL [close={close:6.4f}, stoploss={stop1:6.4f}, limit={limit1:6.4f}]')               
-                    self.order = self.sell_bracket(limitprice=limit1, stopprice=stop1, size=None)
-                    
-                    #tp2 = close - sl_diff
-                    #self.sell(sl=sl1, tp=tp2, size=self.pos_sz)
-                    
+                    if BreakoutStrategy.SHORT:
+                        stop1  = close * (1.0 + s_fac)
+                        limit1 = close * (1.0 - r * s_fac)   
+                        
+                        self.log(f'OPEN SELL [close={close:6.4f}, stoploss={stop1:6.4f}, limit={limit1:6.4f}]')               
+                        self.order = self.sell_bracket(limitprice=limit1, stopprice=stop1, size=None)
+                        
+                        #tp2 = close - sl_diff
+                        #self.sell(sl=sl1, tp=tp2, size=self.pos_sz)
+                        
                 case Signal.BUY:
-                    stop1  = close * (1.0 - s_fac)
-                    limit1 = close * (1.0 + r * s_fac)
-                    
-                    self.log(f'OPEN BUY [close={close:6.4f}, stoploss={stop1:6.4f}, limit={limit1:6.4f}]')               
-                    self.order = self.buy_bracket(limitprice=limit1, stopprice=stop1, size=None)
-                    #self.order = self.buy_bracket(exectype=bt.Order.StopTrail, trailpercent=2*s_fac, limitprice=limit1)
-                    
-                    #tp2 = close + sl_diff
-                    #self.buy(sl=sl1, tp=tp2, size=self.pos_sz)
+                    if BreakoutStrategy.LONG:
+                        stop1  = close * (1.0 - s_fac)
+                        limit1 = close * (1.0 + r * s_fac)
+                        
+                        self.log(f'OPEN BUY [close={close:6.4f}, stoploss={stop1:6.4f}, limit={limit1:6.4f}]')               
+                        self.order = self.buy_bracket(limitprice=limit1, stopprice=stop1, size=None)
+                        #self.order = self.buy_bracket(exectype=bt.Order.StopTrail, trailpercent=2*s_fac, limitprice=limit1)
+                        
+                        #tp2 = close + sl_diff
+                        #self.buy(sl=sl1, tp=tp2, size=self.pos_sz)
                 
                 case 0:
                     pass

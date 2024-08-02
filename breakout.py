@@ -15,7 +15,7 @@ from backtrader.feeds import PandasData
 from BreakoutStrategy import BreakoutStrategy
 from pivot import * 
 
-from parameters import RunParameters, OptParameters
+from parameters import RunParameters, OptParameters, TradingParameters
 
 pd.options.mode.copy_on_write = True
 LOGGING_DEFAULT = logging.INFO
@@ -125,14 +125,14 @@ class Application :
             ]
             
         par_df = DataFrame(par_list, columns = ['tp-sl', 'stoploss-d', 'back', 'gap', 'zone-height', 'bof', 'profit', 'max-dd', 'sharpe'])
-        par_df.to_csv(f'out/{Application.ticker}-{Application.NOW.date().strftime("%Y%m%d")}_results.csv')    
+        par_df.to_csv(f'out/{Application.ticker}-{Application.NOW.date().strftime("%Y%m%d")}-results.csv')    
     
         
  
     from backtrader.sizers import PercentSizer       
     
     @staticmethod
-    def optimize(data: DataFrame, par: OptParameters):
+    def optimize(data: DataFrame, par: OptParameters, trading_par: TradingParameters):
         Application.logger.info(f'optimize: {Application.ticker}...\n')
         pivots = data['pivot'].array._ndarray
         pdata = PandasData(dataname=data, datetime=None, open=0, high=1, low=2, close=3, volume=4, openinterest=-1)
@@ -140,9 +140,12 @@ class Application :
         Application.logger.info(f'optimize: init cerebro...\n')
         cerebro = Cerebro(stdstats=True)
         
-        cerebro.broker.setcash(1_000_000.0) 
-        cerebro.broker.setcommission(commission=0.001)
-        cerebro.addsizer(PercentSizer, percents = 90)          
+        cerebro.broker.setcash(trading_par.amount) 
+        cerebro.broker.setcommission(trading_par.commission)
+        cerebro.addsizer(PercentSizer, percents = 100 * trading_par.size) 
+        BreakoutStrategy.LONG = trading_par.plong
+        BreakoutStrategy.SHORT = trading_par.pshort
+                    
          
         cerebro.adddata(data=pdata)
 
@@ -150,6 +153,7 @@ class Application :
 
         Application.logger.info(f'optimize: adding strategy...\n')
         
+         
         print(par.zone_height)
         strats = cerebro.optstrategy(
             BreakoutStrategy,
@@ -189,7 +193,7 @@ class Application :
         
     
     @staticmethod
-    def run(data: DataFrame, par: RunParameters, plot: bool = False):  
+    def run(data: DataFrame, par: RunParameters, trading_par: TradingParameters, plot: bool = False):  
           
         Application.logger.info(f'run: {Application.ticker}...\n')
         pivots = data['pivot'].array._ndarray    
@@ -197,9 +201,12 @@ class Application :
         
         Application.logger.debug(f'run: init cerebro...\n')
         cerebro = Cerebro(stdstats=True)
-        cerebro.broker.setcash(10_000.0) 
-        cerebro.broker.setcommission(commission=0.001)
-        cerebro.addsizer(PercentSizer, percents = 70)                 
+        
+        cerebro.broker.setcash(trading_par.amount) 
+        cerebro.broker.setcommission(trading_par.commission)
+        cerebro.addsizer(PercentSizer, percents = 100 * trading_par.size) 
+        BreakoutStrategy.LONG = trading_par.plong
+        BreakoutStrategy.SHORT = trading_par.pshort
 
         cerebro.adddata(data=pdata)
 
@@ -341,11 +348,13 @@ if __name__ == '__main__':
             
             if options.get('run'): 
                 parameters = RunParameters(conf=configuration.run)
-                Application.run(data=data, par=parameters, plot=False) 
+                trading = TradingParameters(conf=configuration.trading)
+                Application.run(data=data, par=parameters, trading_par=trading, plot=False) 
              
             elif options.get('optimize'):
                 parameters = OptParameters(conf=configuration.optim)
-                Application.optimize(data=data, par=parameters)
+                trading = TradingParameters(conf=configuration.trading)
+                Application.optimize(data=data, par=parameters, trading_par=trading)
            
             if options.get('plotting'): 
                 pass                   
