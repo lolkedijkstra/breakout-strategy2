@@ -3,8 +3,10 @@
         "_comment": [
             "runtime parameters for regular run",
 
-            "same tags must be used in this segment and config.RunOptions"
-            ],
+        "============================================================",
+        "same tags must be used in this segment and config.RunOptions",
+        "============================================================"
+        ],
 
         "pivot_window":     6,
         "gap_window":       7,
@@ -30,9 +32,11 @@
             "it's possible to specify either ranges or arrays",
             "if a single value is used, use an array with a single value",
             "in the case of ranges, the step is mandatory",
-            
-            "same tags must be used in this segment and config.Optimize"
-            ],
+
+        "===========================================================",           
+        "same tags must be used in this segment and config.Optimize",
+        "==========================================================="
+        ],
 
         "backcandles":      [36, 40, 1],
 
@@ -51,7 +55,12 @@
     },
 
     "options": {
-        "_comment": "runtime options",
+        "_comment": ["runtime options",
+    
+        "===========================================================",           
+        "same tags must be used in this segment and config.Options",
+        "==========================================================="
+        ],
 
         "save_snapshot":    true,
         "store_signals":    true,
@@ -64,7 +73,12 @@
     },
 
     "trading": {
-        "_comment": "trading parameters",
+        "_comment": ["trading parameters",
+
+        "================================================================",           
+        "same tags must be used in this segment and config.TradingOptions",
+        "================================================================"  
+        ],
 
         "amount":           100000,
         "size":             0.9,
