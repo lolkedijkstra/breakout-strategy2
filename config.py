@@ -14,17 +14,31 @@ logger.setLevel('INFO')
 
 class _Options:
            
-    def __init__(self, json_p):
+    def __init__(self, json_p=None):
         self.nodes = dict()
         self.jsp = json_p
-       
-    def add_node(self, tag):
-        fld = self.jsp.get(tag)
-        if fld:
-            self.nodes[tag] = fld
+ 
+    
+    def _check_value(self, tag, value):
+        if value is None:
+            if self.jsp is None:
+                raise Exception("json source is not set and no value is provided")            
+            value = self.jsp.get(tag)
+            
+        if value is None:
+            raise ValueError(f"value is None. No tag named: {tag} in json?")
+        
+        return value 
+      
+    def add(self, tag, value=None):
+        value = self._check_value(tag, value)            
+        self.nodes[tag] = value
 
     def get(self, tag):
         return self.nodes.get(tag)
+    
+    def has(self, tag):
+        return tag in self.nodes
     
 
 class Options(_Options):
@@ -58,7 +72,7 @@ class TradingOptions(_Options):
     ]   
          
           
-class Optimize:
+class Optimize(_Options):
     @staticmethod
     def _make_array_int(fld):
         if len(fld) == 3 and fld[2] < fld[1]: 
@@ -75,23 +89,20 @@ class Optimize:
         return fld
 
     
-    def __init__(self, json_p):
+    def __init__(self, json_p=None):
         self.nodes = dict()
         self.jsp = json_p
+     
        
-    def add_float(self, tag):
-        fld = self.jsp.get(tag)
-        if fld:
-            self.nodes[tag] = Optimize._make_array_float(fld)
-        
-    def add_int(self, tag):
-        fld = self.jsp.get(tag)
-        if fld:
-            self.nodes[tag] = Optimize._make_array_int(fld)
+    def add_float(self, tag, value = None):
+        value = self._check_value(tag, value)    
+        self.nodes[tag] = Optimize._make_array_float(value)
 
-    def get(self, tag):
-        return self.nodes.get(tag)
-      
+        
+    def add_int(self, tag, value = None):
+        value = self._check_value(tag, value)            
+        self.nodes[tag] = Optimize._make_array_int(value)
+
  
 
 class Config:
@@ -121,12 +132,12 @@ def load_config(configfile: str) -> Config:
             if not c['options'] is None:      
                 opt = Options(c['options'])
                 for tag in Options.tags:
-                    opt.add_node(tag)
+                    opt.add(tag)
                 
             if not c['run'] is None:
                 run = RunOptions(c['run'])
                 for tag in RunOptions.tags:
-                    run.add_node(tag)
+                    run.add(tag)
                     
             if not c['optimize'] is None:
                 optim = Optimize(c.get('optimize'))
@@ -146,7 +157,7 @@ def load_config(configfile: str) -> Config:
             if not c['trading'] is None:
                 tra = TradingOptions(c['trading'])
                 for tag in TradingOptions.tags:
-                    tra.add_node(tag)
+                    tra.add(tag)
 
  
             
