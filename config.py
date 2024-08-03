@@ -6,10 +6,6 @@ logger.setLevel('INFO')
 
 
 
-#
-# range in json consist of 3 values, begin, end, step, otherwise its an array
-#
-
 
 
 class _Options:
@@ -81,15 +77,21 @@ class TradingOptions(Options):
           
 class Optimize(_Options):
     @staticmethod
+    def _is_range(fld):
+        # detect if range (3 values, begin, end, step), otherwise its an array
+        return len(fld) == 3 and fld[2] < fld[1]
+        
+    
+    @staticmethod
     def _make_array_int(fld):
-        if len(fld) == 3 and fld[2] < fld[1]: 
+        if Optimize._is_range(fld): 
             return list(range(fld[0], fld[1], fld[2]))
         
         return fld
 
     @staticmethod
     def _make_array_float(fld):
-        if len(fld) == 3 and fld[2] < fld[1]: 
+        if Optimize._is_range(fld): 
             sz = round((fld[1] - fld[0])/fld[2])
             return ( [fld[0] + fld[2] * x for x in range(0, sz)] )
     
@@ -136,7 +138,6 @@ def load_config(configfile: str) -> Config:
     tra: TradingOptions = None
     optim: Optimize = None
     
-    #try:
     with open(configfile, "r") as fconf:
         c = json.load(fconf)     
             
@@ -174,54 +175,3 @@ def load_config(configfile: str) -> Config:
     logger.info("load_config: end\n")   
     return Config(opt=opt, run=run, optim=optim, trading=tra)  
 
-
-'''
-def check_options():    
-    assert( Options.save_snapshot == True )
-    assert( Options.store_signals == True )
-    assert( Options.store_actions == True )
-    
-    assert( Options.optimize  == True )
-    assert( Options.run == True )
-    assert( Options.plotting == False )  
-    
-
-def check_run():
-    assert( Run.backcandles == 40 )
-    assert( Run.sl_distance == 0.025 )
-    assert( Run.tp_sl_ratio == 1.9 )
-    assert( Run.zone_height == 0.002 )
-    assert( Run.breakout_factor == 1.84 )
-    assert( Run.rsi_period == 14 )
-    assert( Run.open_long_rsi == 31 )
-    assert( Run.close_long_rsi == 95 )
-    assert( Run.open_short_rsi == 85 )
-    assert( Run.close_short_rsi == 17 )
-
-
-def check_optim():        
-    assert ( Optimize.backcandles == [36, 37, 38, 39] )
-    assert ( Optimize.open_long_rsi == [20, 23, 26, 29, 32] )
-    assert ( Optimize.close_long_rsi == [80, 82, 84, 86, 88, 90] )
-    assert ( Optimize.open_short_rsi == [82, 84, 86] )
-    assert ( Optimize.close_short_rsi == [20, 23, 26, 29, 32, 35, 38] )
-    
-
-def check_trading():
-    assert ( Trading.amount == 100_000 )
-    assert ( Trading.size == 0.9 )
-    assert ( Trading.plong == True )
-    assert ( Trading.pshort == True )    
-
-def check_config():
-    check_options()
-    
-    if Options.run:
-        check_run()
-    
-    if Options.optimize:
-        check_optim()
-        
-    check_trading()
-    
-'''

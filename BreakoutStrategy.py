@@ -74,7 +74,7 @@ class BreakoutStrategy(Strategy):
         
         backcandles  = 0,     
         gap_window   = 0, 
-    #    pivot_window = 0,     
+    #    pivot_window = 0,     <= not used now, pivots are calculated outside
         zone_height  = 0.0,
         breakout_f   = 0.0,
         pivots       = [int]               
