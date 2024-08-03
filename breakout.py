@@ -11,12 +11,13 @@ from datetime import datetime
 from backtrader import Cerebro
 from backtrader.sizers import PercentSizer
 from backtrader.feeds import PandasData
-from backtrader.analyzers import SharpeRatio, DrawDown, Returns, AnnualReturn
+from backtrader.analyzers import SharpeRatio, DrawDown, Returns
 
 from BreakoutStrategy import BreakoutStrategy
 from pivot import * 
 
-from parameters import RunParameters, OptParameters, TradingParameters
+
+from parameters import RuntimeParameters, RunParameters, OptimizeParameters, TradingParameters
 
 
 pd.options.mode.copy_on_write = True
@@ -135,7 +136,7 @@ class Application :
     from backtrader.sizers import PercentSizer       
     
     @staticmethod
-    def optimize(data: DataFrame, par: OptParameters, trading_par: TradingParameters):
+    def optimize(data: DataFrame, par: OptimizeParameters, trading_par: TradingParameters):
         Application.logger.info(f'optimize: {Application.ticker}...\n')
         pivots = data['pivot'].array._ndarray
         pdata = PandasData(dataname=data, datetime=None, open=0, high=1, low=2, close=3, volume=4, openinterest=-1)
@@ -303,7 +304,7 @@ def get_loglevel(loglevel):
 #
 from plotting import pivot_plot
 import config
-from config import Config, Options, RunOptions
+from config import Config, RuntimeOptions, RunOptions
 
 if __name__ == '__main__': 
     
@@ -357,29 +358,27 @@ if __name__ == '__main__':
         #  
         if args.config:
             configuration: Config = config.load_config(args.config)            
-            options: Options = configuration.options
+            actions = RuntimeParameters(configuration.runtime) 
             
-            if options.get('save_snapshot'): 
+            if actions.SAVE_SNAPSHOT: 
                 data.to_csv(f"out/{ticker.lower()}-{args.begin}-{args.end}-backup.csv")            
             
-            if options.get('store_signals'):
+            if actions.STORE_SIGNALS:
                 pass
             
-            if options.get('store_actions'): 
+            if actions.STORE_ACTIONS: 
                 pass
             
-            if options.get('run'): 
-                parameters = RunParameters(conf=configuration.run)
+            if actions.RUN: 
+                run = RunParameters(conf=configuration.run)
                 trading = TradingParameters(conf=configuration.trading)
-                Application.run(data=data, par=parameters, trading_par=trading, plot=False) 
+                Application.run(data=data, par=run, trading_par=trading, plot=actions.PLOTTING) 
              
-            elif options.get('optimize'):
-                parameters = OptParameters(conf=configuration.optim)
+            elif actions.OPTIMIZE:
+                optim = OptimizeParameters(conf=configuration.optim)
                 trading = TradingParameters(conf=configuration.trading)
-                Application.optimize(data=data, par=parameters, trading_par=trading)
-           
-            if options.get('plotting'): 
-                pass                   
+                Application.optimize(data=data, par=optim, trading_par=trading)
+                         
  
  
  
@@ -398,18 +397,18 @@ if __name__ == '__main__':
             # execute 
             if args.run:
                 print("run...")
-                options = RunOptions()
+                actions = RunOptions()
                 
                 if args.gap is not None:
-                    options.add(tag='gap_window', value=int(args.gap)) 
+                    actions.add(tag='gap_window', value=int(args.gap)) 
                 if args.backcandles is not None:
-                    options.add(tag='backcandles', value=int(args.backcandles)) 
+                    actions.add(tag='backcandles', value=int(args.backcandles)) 
                 if args.pwindow is not None:
-                    options.add(tag='pivot_window', value=int(args.pwindow)) 
+                    actions.add(tag='pivot_window', value=int(args.pwindow)) 
                 if args.zoneheight is not None:
-                    options.add(tag='zone_height', value=float(args.zoneheight)) 
+                    actions.add(tag='zone_height', value=float(args.zoneheight)) 
                 
-                parameters = RunParameters(conf=options)
+                parameters = RunParameters(conf=actions)
                 Application.run(data=data, par=parameters, plot=args.plot) 
                    
             

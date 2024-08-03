@@ -34,11 +34,7 @@ class _Options:
         return tag in self.nodes
     
 
-class Options(_Options):
-    tags = [
-        'save_snapshot','store_signals','store_actions','optimize','run','plotting'
-    ]        
-       
+class Options(_Options):      
     def add(self, tag, value=None):
         value = self._check_value(tag, value)  
         
@@ -47,7 +43,14 @@ class Options(_Options):
                      
         self.nodes[tag] = value
 
-       
+
+
+class RuntimeOptions(Options):
+    tags = [
+        'save_snapshot','store_signals','store_actions','optimize','run','plotting'
+    ]        
+    
+      
        
 class RunOptions(Options):
     tags = [
@@ -75,7 +78,7 @@ class TradingOptions(Options):
     ]   
          
           
-class Optimize(_Options):
+class OptimizeOptions(_Options):
     @staticmethod
     def _is_range(fld):
         # detect if range (3 values, begin, end, step), otherwise its an array
@@ -84,14 +87,14 @@ class Optimize(_Options):
     
     @staticmethod
     def _make_array_int(fld):
-        if Optimize._is_range(fld): 
+        if OptimizeOptions._is_range(fld): 
             return list(range(fld[0], fld[1], fld[2]))
         
         return fld
 
     @staticmethod
     def _make_array_float(fld):
-        if Optimize._is_range(fld): 
+        if OptimizeOptions._is_range(fld): 
             sz = round((fld[1] - fld[0])/fld[2])
             return ( [fld[0] + fld[2] * x for x in range(0, sz)] )
     
@@ -108,20 +111,20 @@ class Optimize(_Options):
         if not type (value) == list:
             raise ValueError(f"incorrect type in json object '{tag}', within 'optimize'; got: {type (value)}, expected: 'list'")           
        
-        self.nodes[tag] = Optimize._make_array_float(value)
+        self.nodes[tag] = OptimizeOptions._make_array_float(value)
 
         
     def add_int(self, tag, value = None):
         value = self._check_value(tag, value) 
         if not type (value) == list:
             raise ValueError(f"incorrect type in json object '{tag}', within 'optimize'; got: {type (value)}, expected: 'list'")           
-        self.nodes[tag] = Optimize._make_array_int(value)
+        self.nodes[tag] = OptimizeOptions._make_array_int(value)
 
  
 
 class Config:
-    def __init__(self, opt: Options, run: RunOptions, optim: Optimize, trading: TradingOptions):
-        self.options = opt        
+    def __init__(self, runtime: RuntimeOptions, run: RunOptions, optim: OptimizeOptions, trading: TradingOptions):
+        self.runtime = runtime        
         self.run = run
         self.optim = optim
         self.trading = trading
@@ -133,18 +136,18 @@ class Config:
 def load_config(configfile: str) -> Config:
     logger.info("load_config: start")
 
-    opt: Options = None
+    runtime: RuntimeOptions = None
     run: RunOptions = None
-    tra: TradingOptions = None
-    optim: Optimize = None
+    trading: TradingOptions = None
+    optim: OptimizeOptions = None
     
     with open(configfile, "r") as fconf:
         c = json.load(fconf)     
             
-        if 'options' in c:      
-            opt = Options(c['options'])
-            for tag in Options.tags:
-                opt.add(tag)
+        if 'runtimeoptions' in c:      
+            runtime = RuntimeOptions(c['runtimeoptions'])
+            for tag in RuntimeOptions.tags:
+                runtime.add(tag)
             
         if 'run' in c:
             run = RunOptions(c['run'])
@@ -152,7 +155,7 @@ def load_config(configfile: str) -> Config:
                 run.add(tag)
                 
         if 'optimize' in c:
-            optim = Optimize(c.get('optimize'))
+            optim = OptimizeOptions(c.get('optimize'))
             
             optim.add_int('pivot_window')               
             optim.add_int('gap_window')               
@@ -168,10 +171,10 @@ def load_config(configfile: str) -> Config:
             optim.add_float('breakout_factor')
                                     
         if 'trading' in c:
-            tra = TradingOptions(c['trading'])
+            trading = TradingOptions(c['trading'])
             for tag in TradingOptions.tags:
-                tra.add(tag)
+                trading.add(tag)
                
     logger.info("load_config: end\n")   
-    return Config(opt=opt, run=run, optim=optim, trading=tra)  
+    return Config(runtime=runtime, run=run, optim=optim, trading=trading)  
 

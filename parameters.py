@@ -72,9 +72,9 @@ class RunParameters:
  
                
 # parameters for optimization run
-class OptParameters:    
+class OptimizeParameters:    
     
-    def __init__(self, conf: config.Optimize): 
+    def __init__(self, conf: config.OptimizeOptions): 
         # defaults
         self.pivot_window   = [Pivot.WINDOW] 
         self.gap_window     = [Pivot.WINDOW+1]
@@ -153,3 +153,40 @@ class TradingParameters:
             self.pshort = conf.get(tag)
         
  
+class RuntimeParameters:
+
+    def __init__(self, conf: config.TradingOptions):
+        # defaults
+        self.SAVE_SNAPSHOT = False
+        self.STORE_SIGNALS = False
+        self.STORE_ACTIONS = False
+        self.OPTIMIZE = False
+        self.RUN = False
+        self.PLOTTING = False
+        
+        tag = "save_snapshot"    
+        if conf.has(tag):            
+            self.SAVE_SNAPSHOT = conf.get(tag)
+
+        tag = "store_signals"    
+        if conf.has(tag):            
+            self.STORE_ACTIONS = conf.get(tag)
+
+        tag = "store_actions"    
+        if conf.has(tag):            
+            self.STORE_ACTIONS = conf.get(tag)
+
+        tag = "optimize"    
+        if conf.has(tag):            
+            self.OPTIMIZE = conf.get(tag)
+
+        tag = "run"    
+        if conf.has(tag):            
+            self.RUN = conf.get(tag)
+
+        tag = "plotting"    
+        if conf.has(tag):            
+            self.PLOTTING = conf.get(tag)
+
+    
+    
