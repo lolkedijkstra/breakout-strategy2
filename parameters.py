@@ -157,12 +157,12 @@ class RuntimeParameters:
 
     def __init__(self, conf: config.TradingOptions):
         # defaults
-        self.SAVE_SNAPSHOT = False
-        self.STORE_SIGNALS = False
-        self.STORE_ACTIONS = False
-        self.OPTIMIZE = False
-        self.RUN = False
-        self.PLOTTING = False
+        self.SAVE_SNAPSHOT: bool = False
+        self.STORE_SIGNALS: bool = False
+        self.STORE_ACTIONS: bool = False
+        self.OPTIMIZE: bool = False
+        self.RUN: bool = False
+        self.PLOTTING: bool = False
         
         tag = "save_snapshot"    
         if conf.has(tag):            
