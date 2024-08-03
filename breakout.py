@@ -158,6 +158,7 @@ class Application :
         strats = cerebro.optstrategy(
             BreakoutStrategy,
                 ticker       = (Application.ticker,),
+                
                 tp_sl_ratio  = par.tp_sl_ratio,    
                 sl_distance  = par.sl_distance,
                 backcandles  = par.backcandles,
@@ -214,12 +215,14 @@ class Application :
         cerebro.addstrategy(
             BreakoutStrategy,
                 ticker       = Application.ticker,
+                
                 tp_sl_ratio  = par.tp_sl_ratio,   
                 sl_distance  = par.sl_distance,
                 backcandles  = par.backcandles,
                 gap_window   = par.gap_window, 
                 zone_height  = par.zone_height,
                 breakout_f   = par.breakout_factor,
+                
                 pivots       = pivots
             ) 
             

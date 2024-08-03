@@ -91,6 +91,14 @@ class OptParameters:
         #self.close_short_rsi
         
         # copy provided parameters
+        tag = 'pivot_window'
+        if conf.has(tag):
+            self.pivot_window = conf.get(tag)
+        
+        tag = 'gap_window'
+        if conf.has(tag):
+            self.gap_window = conf.get(tag)
+        
         tag = 'backcandles'
         if conf.has(tag):
             self.backcandles = conf.get(tag)
@@ -114,7 +122,6 @@ class OptParameters:
 
 
 class TradingParameters:  
-    
     
     def __init__(self, conf: config.TradingOptions):
         # defaults

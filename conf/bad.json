@@ -24,10 +24,12 @@
 
         "============================================================",
         "same tags must be used in this segment and config.RunOptions",
-        "============================================================"
+        "============================================================",
+
+        "BAD: pivot_window contains list, should contain simple value"
         ],
 
-        "pivot_window":     6,
+        "pivot_window":     [6],
         "gap_window":       7,
         "backcandles":      40,
 
@@ -55,10 +57,12 @@
 
         "===========================================================",           
         "same tags must be used in this segment and config.Optimize",
-        "==========================================================="
+        "===========================================================",
+
+        "BAD: pivot_window contains int, should contain list"      
         ],
 
-        "pivot_window":     [6],
+        "pivot_window":     6,
         "gap_window":       [7, 8, 9],
         "backcandles":      [36, 40, 1],
 

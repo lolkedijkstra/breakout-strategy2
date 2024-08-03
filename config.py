@@ -22,7 +22,7 @@ class _Options:
     def _check_value(self, tag, value):
         if value is None:
             if self.jsp is None:
-                raise Exception("json source is not set and no value is provided")            
+                raise Exception("json source is not set or no value is provided")            
             value = self.jsp.get(tag)
             
         if value is None:
@@ -44,7 +44,11 @@ class Options(_Options):
     ]        
        
     def add(self, tag, value=None):
-        value = self._check_value(tag, value)            
+        value = self._check_value(tag, value)  
+        
+        if not type (value) in (int, float, bool):
+            raise ValueError(f"incorrect type in json object '{tag}'; got: {type (value)}, expected one of: 'int', 'float", 'bool')           
+                     
         self.nodes[tag] = value
 
        
@@ -99,11 +103,16 @@ class Optimize(_Options):
        
     def add_float(self, tag, value = None):
         value = self._check_value(tag, value)    
+        if not type (value) == list:
+            raise ValueError(f"incorrect type in json object '{tag}', within 'optimize'; got: {type (value)}, expected: 'list'")           
+       
         self.nodes[tag] = Optimize._make_array_float(value)
 
         
     def add_int(self, tag, value = None):
-        value = self._check_value(tag, value)            
+        value = self._check_value(tag, value) 
+        if not type (value) == list:
+            raise ValueError(f"incorrect type in json object '{tag}', within 'optimize'; got: {type (value)}, expected: 'list'")           
         self.nodes[tag] = Optimize._make_array_int(value)
 
  
@@ -127,48 +136,42 @@ def load_config(configfile: str) -> Config:
     tra: TradingOptions = None
     optim: Optimize = None
     
-    try:
-        with open(configfile, "r") as fconf:
-            c = json.load(fconf)     
-             
-            if 'options' in c:      
-                opt = Options(c['options'])
-                for tag in Options.tags:
-                    opt.add(tag)
-                
-            if 'run' in c:
-                run = RunOptions(c['run'])
-                for tag in RunOptions.tags:
-                    run.add(tag)
-                    
-            if 'optimize' in c:
-                optim = Optimize(c.get('optimize'))
-                
-                optim.add_int('backcandles')               
-                optim.add_int('open_long_rsi')
-                optim.add_int('close_long_rsi')
-                optim.add_int('open_short_rsi')
-                optim.add_int('close_short_rsi')
- 
-                optim.add_float('sl_distance')
-                optim.add_float('tp_sl_ratio')
-                optim.add_float('zone_height')
-                optim.add_float('breakout_factor')
-                
-                		
-            if 'trading' in c:
-                tra = TradingOptions(c['trading'])
-                for tag in TradingOptions.tags:
-                    tra.add(tag)
-
- 
+    #try:
+    with open(configfile, "r") as fconf:
+        c = json.load(fconf)     
             
-    except Exception as e:
-        logger.error(f'\t{e} {fconf}')
-        
-        
-    logger.info("load_config: end\n")
-    
+        if 'options' in c:      
+            opt = Options(c['options'])
+            for tag in Options.tags:
+                opt.add(tag)
+            
+        if 'run' in c:
+            run = RunOptions(c['run'])
+            for tag in RunOptions.tags:
+                run.add(tag)
+                
+        if 'optimize' in c:
+            optim = Optimize(c.get('optimize'))
+            
+            optim.add_int('pivot_window')               
+            optim.add_int('gap_window')               
+            optim.add_int('backcandles')               
+            optim.add_int('open_long_rsi')
+            optim.add_int('close_long_rsi')
+            optim.add_int('open_short_rsi')
+            optim.add_int('close_short_rsi')
+
+            optim.add_float('sl_distance')
+            optim.add_float('tp_sl_ratio')
+            optim.add_float('zone_height')
+            optim.add_float('breakout_factor')
+                                    
+        if 'trading' in c:
+            tra = TradingOptions(c['trading'])
+            for tag in TradingOptions.tags:
+                tra.add(tag)
+               
+    logger.info("load_config: end\n")   
     return Config(opt=opt, run=run, optim=optim, trading=tra)  
 
 

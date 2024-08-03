@@ -74,7 +74,7 @@ class BreakoutStrategy(Strategy):
         
         backcandles  = 0,     
         gap_window   = 0, 
-        pivot_window = 0,     
+    #    pivot_window = 0,     
         zone_height  = 0.0,
         breakout_f   = 0.0,
         pivots       = [int]               
@@ -235,8 +235,7 @@ class BreakoutStrategy(Strategy):
             return
 
         self.open_positions = self.open_positions -2
-
-        print(f'open {trade.baropen:5d}, close {trade.barclose:5d}, profit gross {trade.pnl:8.3f}, net {trade.pnlcomm:8.3f}')
+        print(f'{trade.baropen:5d}, {bt.num2date(trade.dtopen)}, {trade.barclose:5d}, {bt.num2date(trade.dtclose)}, {trade.pnl:8.3f}, {trade.pnlcomm:8.3f}')
         self.log(f'OPERATION PROFIT, GROSS {trade.pnl:8.3f}, NET {trade.pnlcomm:8.3f}\n******')
     
 
