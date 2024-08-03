@@ -409,7 +409,19 @@ if __name__ == '__main__':
                     opt.add(tag='zone_height', value=float(args.zoneheight)) 
                 
                 parameters = RunParameters(conf=opt)
-                tradingpar = TradingParameters(conf=None)
+                
+                #tradingpar = TradingParameters(conf=None)
+                
+                # alternative initialization
+                def getTradingOptions(par: dict) -> config.TradingOptions:                  
+                    options = config.TradingOptions()
+                    for key, value in par.items():
+                        options.add(key, value)                       
+                    return options
+                
+                my_par = dict(amount=10_000, size=0.99, commission=0.0, plong=True, pshort= True)
+                tradingpar = TradingParameters(getTradingOptions(par=my_par))
+
                 Application.run(data=data, par=parameters, trading_par=tradingpar, plot=args.plot) 
                    
             
