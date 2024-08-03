@@ -75,9 +75,9 @@ class Application :
         if ticker == 'h':
             data = data[data['Volume'] != 0]             
             
-        data.reset_index(drop=True, inplace=True)    
         data = data[b:e] if e not in [-1] else data[b:]        
-        
+        data.reset_index(drop=True, inplace=True)    
+                
         if len(data) == 0:
             raise Exception(f'No data for ticker: {ticker}')              
         return data
@@ -204,6 +204,7 @@ class Application :
         cerebro = Cerebro(stdstats=True)
         
         cerebro.broker.setcash(trading_par.amount) 
+        print(f'amount: {trading_par.amount}, commission: {trading_par.commission}, long: {trading_par.plong}, short: {trading_par.pshort}, size: {trading_par.size}')
         cerebro.broker.setcommission(trading_par.commission)
         cerebro.addsizer(PercentSizer, percents = 100 * trading_par.size) 
         BreakoutStrategy.LONG = trading_par.plong
@@ -307,8 +308,8 @@ if __name__ == '__main__':
         if args.ticker in TEST: 
             Application.ticker = 'EURUSD'
             ticker = args.ticker.lower()
-            begin = int(args.begin) if args.begin else 0
-            end = int(args.end) if args.end else -1
+            begin = int(args.begin) 
+            end = int(args.end) 
             Application.logger.info(f'data = {ticker}, [start, end] = [{begin}, {end}]\n')
             data = Application.load_testdata(ticker, begin, end) 
         else: 

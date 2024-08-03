@@ -56,7 +56,7 @@ class BreakoutStrategy(Strategy):
     LONG = True
     SHORT = False
 
-    run_nr = 0
+    run_nr = 1
     
     #
     # input parameters for the BreakoutStrategy class
