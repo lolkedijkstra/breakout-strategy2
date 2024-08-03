@@ -11,11 +11,13 @@ from datetime import datetime
 from backtrader import Cerebro
 from backtrader.sizers import PercentSizer
 from backtrader.feeds import PandasData
+from backtrader.analyzers import SharpeRatio, DrawDown, Returns, AnnualReturn
 
 from BreakoutStrategy import BreakoutStrategy
 from pivot import * 
 
 from parameters import RunParameters, OptParameters, TradingParameters
+
 
 pd.options.mode.copy_on_write = True
 LOGGING_DEFAULT = logging.INFO
@@ -118,13 +120,14 @@ class Application :
                     x[0].params.zone_height, 
                     x[0].params.breakout_f,            
                     
+                    x[0].analyzers.returns.get_analysis()['rtot'], 
                     x[0].analyzers.returns.get_analysis()['rnorm100'], 
                     x[0].analyzers.drawdown.get_analysis()['max']['drawdown'],
                     x[0].analyzers.sharpe.get_analysis()['sharperatio']
                 ] for x in results 
             ]
             
-        par_df = DataFrame(par_list, columns = ['tp-sl', 'stoploss-d', 'back', 'gap', 'zone-height', 'bof', 'profit', 'max-dd', 'sharpe'])
+        par_df = DataFrame(par_list, columns = ['tp-sl', 'stoploss-d', 'back', 'gap', 'zone-height', 'bof', 'total', 'yearly', 'max-dd', 'sharpe'])
         par_df.to_csv(f'out/{Application.ticker}-{Application.NOW.date().strftime("%Y%m%d")}-results.csv')    
     
         
@@ -173,7 +176,6 @@ class Application :
         print(f"optimize, total number of runs: {runs}\n") 
         Application.logger.info(f'optimize: cerebro...{runs}\n')
         
-        from backtrader.analyzers import SharpeRatio, DrawDown, Returns 
         cerebro.addanalyzer(SharpeRatio, _name = "sharpe")
         cerebro.addanalyzer(DrawDown, _name = "drawdown")
         cerebro.addanalyzer(Returns, _name = "returns") 
@@ -227,12 +229,28 @@ class Application :
                 pivots       = pivots
             ) 
             
+        cerebro.addanalyzer(SharpeRatio, _name = "sharpe")
+        cerebro.addanalyzer(DrawDown, _name="drawdown")
+        cerebro.addanalyzer(Returns, _name = "returns")
+        
         Application.logger.debug(f'run: cerebro...\n')
               
         initial_value = cerebro.broker.get_value()       
         results = cerebro.run()
         end_value = cerebro.broker.get_value()
         
+        par_list = [
+                [   x.analyzers.returns.get_analysis()['rtot'], 
+                    x.analyzers.returns.get_analysis()['rnorm100'], 
+                    x.analyzers.drawdown.get_analysis()['max']['drawdown'],
+                    x.analyzers.sharpe.get_analysis()['sharperatio']
+                ] for x in results 
+            ]
+
+        print()
+        par_df = DataFrame(par_list, columns = ['total', 'yearly', 'max-dd', 'sharpe',])
+        print(par_df)
+               
         profit    = end_value-initial_value
         gain      = 100.0 * profit / initial_value
                
