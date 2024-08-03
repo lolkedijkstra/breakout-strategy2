@@ -358,23 +358,23 @@ if __name__ == '__main__':
         #  
         if args.config:
             configuration: Config = config.load_config(args.config)            
-            actions = RuntimeParameters(configuration.runtime) 
+            opt = RuntimeParameters(configuration.runtime) 
             
-            if actions.SAVE_SNAPSHOT: 
+            if opt.SAVE_SNAPSHOT: 
                 data.to_csv(f"out/{ticker.lower()}-{args.begin}-{args.end}-backup.csv")            
             
-            if actions.STORE_SIGNALS:
+            if opt.STORE_SIGNALS:
                 pass
             
-            if actions.STORE_ACTIONS: 
+            if opt.STORE_ACTIONS: 
                 pass
             
-            if actions.RUN: 
+            if opt.RUN: 
                 run = RunParameters(conf=configuration.run)
                 trading = TradingParameters(conf=configuration.trading)
-                Application.run(data=data, par=run, trading_par=trading, plot=actions.PLOTTING) 
+                Application.run(data=data, par=run, trading_par=trading, plot=opt.PLOTTING) 
              
-            elif actions.OPTIMIZE:
+            elif opt.OPTIMIZE:
                 optim = OptimizeParameters(conf=configuration.optim)
                 trading = TradingParameters(conf=configuration.trading)
                 Application.optimize(data=data, par=optim, trading_par=trading)
@@ -397,19 +397,20 @@ if __name__ == '__main__':
             # execute 
             if args.run:
                 print("run...")
-                actions = RunOptions()
+                opt = RunOptions()
                 
                 if args.gap is not None:
-                    actions.add(tag='gap_window', value=int(args.gap)) 
+                    opt.add(tag='gap_window', value=int(args.gap)) 
                 if args.backcandles is not None:
-                    actions.add(tag='backcandles', value=int(args.backcandles)) 
+                    opt.add(tag='backcandles', value=int(args.backcandles)) 
                 if args.pwindow is not None:
-                    actions.add(tag='pivot_window', value=int(args.pwindow)) 
+                    opt.add(tag='pivot_window', value=int(args.pwindow)) 
                 if args.zoneheight is not None:
-                    actions.add(tag='zone_height', value=float(args.zoneheight)) 
+                    opt.add(tag='zone_height', value=float(args.zoneheight)) 
                 
-                parameters = RunParameters(conf=actions)
-                Application.run(data=data, par=parameters, plot=args.plot) 
+                parameters = RunParameters(conf=opt)
+                tradingpar = TradingParameters(None)#conf=config.TradingOptions.default())
+                Application.run(data=data, par=parameters, trading_par=tradingpar, plot=args.plot) 
                    
             
             

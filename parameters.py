@@ -21,6 +21,10 @@ class RunParameters:
         self.open_short_rsi = 85
         self.close_short_rsi = 17
         
+        if conf is None:
+            return
+       
+        
         # copy provided parameters
         tag = "pivot_window"    
         if conf.has(tag):            
@@ -76,12 +80,12 @@ class OptimizeParameters:
     
     def __init__(self, conf: config.OptimizeOptions): 
         # defaults
-        self.pivot_window   = [Pivot.WINDOW] 
-        self.gap_window     = [Pivot.WINDOW+1]
-        self.backcandles    = [39, 40]
-        self.sl_distance    = [0.024 + x/1000 for x in range(0, 3)] 
-        self.tp_sl_ratio    = [1.5 + x/10 for x in range(0, 5)]
-        self.zone_height    = [0.00090, 0.00095, 0.00100]    
+        self.pivot_window    = [Pivot.WINDOW] 
+        self.gap_window      = [Pivot.WINDOW+1]
+        self.backcandles     = [39, 40]
+        self.sl_distance     = [0.024 + x/1000 for x in range(0, 3)] 
+        self.tp_sl_ratio     = [1.5 + x/10 for x in range(0, 5)]
+        self.zone_height     = [0.00090, 0.00095, 0.00100]    
         self.breakout_factor = [1.84 + x/25 for x in range(0, 5)]
         
         #self.rsi_period
@@ -89,6 +93,9 @@ class OptimizeParameters:
         #self.close_long_rsi
         #self.open_short_rsi
         #self.close_short_rsi
+        
+        if conf is None:
+            return        
         
         # copy provided parameters
         tag = 'pivot_window'
@@ -121,15 +128,19 @@ class OptimizeParameters:
         
 
 
+# parameters for trading
 class TradingParameters:  
-    
-    def __init__(self, conf: config.TradingOptions):
+       
+    def __init__(self, conf: config.TradingOptions=None):
         # defaults
-        self.amount = 0
-        self.size = 0.0
+        self.amount = 10000.0
+        self.size = 0.9
         self.commission = 0.0
-        self.plong = False
-        self.pshort = False
+        self.plong: bool = True
+        self.pshort: bool = False
+        
+        if conf is None:
+            return
         
         # copy provided parameters
         tag = "amount"    
@@ -153,6 +164,7 @@ class TradingParameters:
             self.pshort = conf.get(tag)
         
  
+# parameters to switch functions OFF | ON  
 class RuntimeParameters:
 
     def __init__(self, conf: config.TradingOptions):
@@ -163,6 +175,9 @@ class RuntimeParameters:
         self.OPTIMIZE: bool = False
         self.RUN: bool = False
         self.PLOTTING: bool = False
+        
+        if conf is None:
+            return        
         
         tag = "save_snapshot"    
         if conf.has(tag):            

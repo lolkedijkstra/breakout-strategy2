@@ -72,7 +72,7 @@ class RunOptions(Options):
         'close_short_rsi'
     ]
            
-class TradingOptions(Options):
+class TradingOptions(Options):   
     tags = [
         'amount', 'commission', 'size', 'long', 'short'
     ]   
