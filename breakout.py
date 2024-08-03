@@ -409,7 +409,7 @@ if __name__ == '__main__':
                     opt.add(tag='zone_height', value=float(args.zoneheight)) 
                 
                 parameters = RunParameters(conf=opt)
-                tradingpar = TradingParameters(None)#conf=config.TradingOptions.default())
+                tradingpar = TradingParameters(conf=None)
                 Application.run(data=data, par=parameters, trading_par=tradingpar, plot=args.plot) 
                    
             

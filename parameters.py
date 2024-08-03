@@ -4,6 +4,7 @@ from pivot import Pivot
 # parameters for regular run
 class RunParameters:  
     
+    # conf: the JSON object, default if None
     def __init__(self, conf: config.RunOptions):
         # defaults
         self.pivot_window = Pivot.WINDOW
@@ -78,6 +79,7 @@ class RunParameters:
 # parameters for optimization run
 class OptimizeParameters:    
     
+    # conf: the JSON object, default if None
     def __init__(self, conf: config.OptimizeOptions): 
         # defaults
         self.pivot_window    = [Pivot.WINDOW] 
@@ -131,7 +133,8 @@ class OptimizeParameters:
 # parameters for trading
 class TradingParameters:  
        
-    def __init__(self, conf: config.TradingOptions=None):
+    # conf: the JSON object, default if None
+    def __init__(self, conf: config.TradingOptions):
         # defaults
         self.amount = 10000.0
         self.size = 0.9
@@ -166,7 +169,8 @@ class TradingParameters:
  
 # parameters to switch functions OFF | ON  
 class RuntimeParameters:
-
+    
+    # conf: the JSON object, default if None
     def __init__(self, conf: config.TradingOptions):
         # defaults
         self.SAVE_SNAPSHOT: bool = False
