@@ -35,6 +35,8 @@ class Application :
     CONFIG_DIR = 'conf'
     OUTPUT_DIR = 'out'
     LOGGING_DIR = 'log'
+    
+    VERBOSE = False
     NOW = pd.Timestamp.today().replace(microsecond=0)    
 
     logger = logging.getLogger()
@@ -147,18 +149,16 @@ class Application :
         cerebro.broker.setcash(trading_par.amount) 
         cerebro.broker.setcommission(trading_par.commission)
         cerebro.addsizer(PercentSizer, percents = 100 * trading_par.size) 
+        
         BreakoutStrategy.LONG = trading_par.plong
         BreakoutStrategy.SHORT = trading_par.pshort
-                    
+        BreakoutStrategy.VERBOSE = Application.VERBOSE
+            
          
         cerebro.adddata(data=pdata)
 
-        Application.logger.info(f"optimize, par.zone_height, {par.zone_height}")
-
         Application.logger.info(f'optimize: adding strategy...\n')
-        
-         
-        print(par.zone_height)
+                
         strats = cerebro.optstrategy(
             BreakoutStrategy,
                 ticker       = (Application.ticker,),
@@ -207,12 +207,17 @@ class Application :
         cerebro = Cerebro(stdstats=True)
         
         cerebro.broker.setcash(trading_par.amount) 
-        print(f'amount: {trading_par.amount}, commission: {trading_par.commission}, long: {trading_par.plong}, short: {trading_par.pshort}, size: {trading_par.size}')
+        if Application.VERBOSE:
+            print(f'amount: {trading_par.amount}, commission: {trading_par.commission}, long: {trading_par.plong}, short: {trading_par.pshort}, size: {trading_par.size}')
+            
         cerebro.broker.setcommission(trading_par.commission)
         cerebro.addsizer(PercentSizer, percents = 100 * trading_par.size) 
+        
         BreakoutStrategy.LONG = trading_par.plong
         BreakoutStrategy.SHORT = trading_par.pshort
-
+        BreakoutStrategy.VERBOSE = Application.VERBOSE
+        
+        
         cerebro.adddata(data=pdata)
 
         Application.logger.debug(f'run: adding strategy...\n')
@@ -275,7 +280,7 @@ def get_args():
     p.add_argument("end", help="for test data, stop bar (e=-1 indicates e is ignored), else stop date")  
     p.add_argument("config", help="configuration file (json)")
     
-    p.add_argument("-v", "--verbose", action="store_true")
+    p.add_argument("-v", "--verbose", action="store_true", help="print stuff on the console")
     p.add_argument("-log", "--loglevel", 
                    choices=['debug', 'DEBUG', 'info', 'INFO', 'warning', 'WARNING', 'error', 'ERROR'], 
                    help="loglevel (default=INFO)")
@@ -307,6 +312,7 @@ if __name__ == '__main__':
         # read command line
         args = get_args()
         
+        Application.VERBOSE = args.verbose
         Application.log_level = get_loglevel(args.loglevel)                            
         Application.initialize()     
         

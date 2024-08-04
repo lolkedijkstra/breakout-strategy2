@@ -49,6 +49,8 @@ class BreakoutStrategy(Strategy):
     
     LONG = True
     SHORT = False
+    
+    VERBOSE = False
 
     run_nr = 1
     
@@ -229,7 +231,9 @@ class BreakoutStrategy(Strategy):
             return
 
         #self.open_positions = self.open_positions -2
-        print(f'{trade.baropen:5d}, {bt.num2date(trade.dtopen)}, {trade.barclose:5d}, {bt.num2date(trade.dtclose)}, {trade.pnl:8.3f}, {trade.pnlcomm:8.3f}')
+        if BreakoutStrategy.VERBOSE:
+            print(f'{trade.baropen:5d}, {bt.num2date(trade.dtopen)}, {trade.barclose:5d}, {bt.num2date(trade.dtclose)}, {trade.pnl:8.3f}, {trade.pnlcomm:8.3f}')
+            
         self.log(f'OPERATION PROFIT, GROSS {trade.pnl:8.3f}, NET {trade.pnlcomm:8.3f}\n******')
     
 
