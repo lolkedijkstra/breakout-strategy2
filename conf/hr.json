@@ -1,5 +1,5 @@
-{
-    "options": {
+{ 
+    "runtimeoptions": {
         "_comment": [
             "runtime options",
     
@@ -11,32 +11,39 @@
         "save_snapshot":    true,
         "store_signals":    true,
         "store_actions":    true,
-        "plotting":         false,
+        "plotting":         true,
 
-        "optimize":         false, 
-        "run":              true
+        "optimize":         true, 
+        "run":              false
+
     },
 
-
+    
     "run": {
         "_comment": [
-            "runtime parameters for regular run",
+            "runtime parameters",
 
         "============================================================",
         "same tags must be used in this segment and config.RunOptions",
-        "============================================================",
-
-        "BAD: pivot_window contains list, should contain simple value"
+        "============================================================"   
         ],
-
-        "pivot_window":     [6],
+ 
+        "pivot_window":     6,
         "gap_window":       7,
         "backcandles":      40,
 
         "sl_distance":      0.025,
         "tp_sl_ratio":      2.0, 
         "zone_height":      0.00095,
-        "breakout_factor":  2.0
+        "breakout_factor":  2.0,
+		
+        "rsi_period":       14,
+
+        "open_long_rsi":    31,
+        "close_long_rsi":   95,
+
+        "open_short_rsi":   85,
+        "close_short_rsi":  17
     },
 
 
@@ -46,22 +53,28 @@
             "it's possible to specify either ranges or arrays",
             "if a single value is used, use an array with a single value",
             "in the case of ranges, the step is mandatory",
-
+            
         "===========================================================",           
         "same tags must be used in this segment and config.Optimize",
-        "===========================================================",
-
-        "BAD: pivot_window contains int, should contain list"      
+        "==========================================================="           
         ],
 
-        "pivot_window":     6,
-        "gap_window":       [7, 8, 9],
-        "backcandles":      [36, 40, 1],
+        "pivot_window":     [6],
+        "gap_window":       [7],
+        "backcandles":      [37],
 
-        "sl_distance":      [0.025, 0.026, 0.027],
-        "tp_sl_ratio":      [1.85, 1.90, 1.95, 2.00],
-        "zone_height":      [0.00090, 0.00095, 0.00100],
-        "breakout_factor":  [1.80, 1.84, 1.88, 1.92, 1.96, 2.00]
+        "sl_distance":      [0.029],
+        "tp_sl_ratio":      [2.00],
+        "zone_height":      [0.00095],
+        "breakout_factor":  [2.0],
+
+        "rsi_period":       [14],
+        
+        "open_long_rsi":    [20, 33, 3],
+        "close_long_rsi":   [80, 91, 2],
+
+        "open_short_rsi":   [82, 88, 2], 
+        "close_short_rsi":  [20, 41, 3]          
     },
 
     
@@ -76,11 +89,10 @@
 
         "amount":           100000,
         "size":             0.9,
-        "commission":       0.001,        
+        "commission":       0.001,
         "long":             true,
         "short":            true
     }
-    
 
 }
 

@@ -5,9 +5,6 @@ logger = logging.getLogger(__name__)
 logger.setLevel('INFO')
 
 
-
-
-
 class _Options:
            
     def __init__(self, json_p=None):
@@ -61,15 +58,7 @@ class RunOptions(Options):
         'sl_distance',
         'tp_sl_ratio',
         'zone_height',
-        'breakout_factor',
-        
-        'rsi_period',
-        
-        'open_long_rsi',
-        'close_long_rsi',
-
-        'open_short_rsi',
-        'close_short_rsi'
+        'breakout_factor'
     ]
            
 class TradingOptions(Options):
@@ -160,10 +149,6 @@ def load_config(configfile: str) -> Config:
             optim.add_int('pivot_window')               
             optim.add_int('gap_window')               
             optim.add_int('backcandles')               
-            optim.add_int('open_long_rsi')
-            optim.add_int('close_long_rsi')
-            optim.add_int('open_short_rsi')
-            optim.add_int('close_short_rsi')
 
             optim.add_float('sl_distance')
             optim.add_float('tp_sl_ratio')

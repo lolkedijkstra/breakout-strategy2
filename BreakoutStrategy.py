@@ -38,7 +38,6 @@ def log_signals(level, data, signals, s):
                    
 
 
-
 from array import array
 
 class BreakoutStrategy(Strategy):
@@ -69,9 +68,10 @@ class BreakoutStrategy(Strategy):
         
         backcandles  = 0,     
         gap_window   = 0, 
-    #    pivot_window = 0,     <= not used now, pivots are calculated outside
         zone_height  = 0.0,
         breakout_f   = 0.0,
+        
+    #    pivot_window = 0,     <= not used now, pivots are calculated outside
         pivots       = [int]               
     )   
      
@@ -95,9 +95,7 @@ class BreakoutStrategy(Strategy):
         self.order = None
         self.buyprice = None
         self.buycomm = None
-        
-        
-               
+            
         #self.open_positions = 0  the idea is to allow multiple orders in parallel up to MAX_OPEN
                
                
@@ -128,6 +126,12 @@ class BreakoutStrategy(Strategy):
              
         log_signals(logging.DEBUG, self.data, self.signals,  Signal.BUY | Signal.SELL )
         
+ 
+    def accept_short(self) -> bool:
+        return BreakoutStrategy.SHORT
+    
+    def accept_long(self) -> bool:
+        return BreakoutStrategy.LONG
     
     def get_signal(self) -> int:
         return self.signals[self.signal_idx]
@@ -158,7 +162,7 @@ class BreakoutStrategy(Strategy):
             match self.get_signal(): 
                 
                 case Signal.SELL: 
-                    if BreakoutStrategy.SHORT:
+                    if self.accept_long():
                         stop1  = close * (1.0 + s_fac)
                         limit1 = close * (1.0 - r * s_fac)   
                         
@@ -166,7 +170,7 @@ class BreakoutStrategy(Strategy):
                         self.order = self.sell_bracket(limitprice=limit1, stopprice=stop1, size=None)
                         
                 case Signal.BUY:
-                    if BreakoutStrategy.LONG:
+                    if self.accept_short():
                         stop1  = close * (1.0 - s_fac)
                         limit1 = close * (1.0 + r * s_fac)
                         
