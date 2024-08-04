@@ -134,7 +134,7 @@ class algo:
                 cclose
             )
  
-            #if sig != 0: 
+            #if sig != Signal.NONE: 
             #    print(f"BUY SIGNAL: {candle_idx}")
             
             

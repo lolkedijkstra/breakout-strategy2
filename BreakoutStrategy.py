@@ -1,10 +1,7 @@
-import sys
-
 from backtrader import Strategy
 from trading import Signal
 from algo import algo
 import backtrader as bt
-#from backtrader.order import StopLimitBuyOrder, StopBuyOrder, SellOrder, StopSellOrder, StopTrail, StopTrailLimit
 
 #
 # logging
@@ -42,8 +39,6 @@ def log_signals(level, data, signals, s):
 
 
 
-
-#MAX_OPEN    = 2
 from array import array
 
 class BreakoutStrategy(Strategy):
@@ -100,10 +95,13 @@ class BreakoutStrategy(Strategy):
         self.order = None
         self.buyprice = None
         self.buycomm = None
+        
+        
                
-        self.open_positions = 0 # the idea is to allow multiple orders in parallel up to MAX_OPEN
+        #self.open_positions = 0  the idea is to allow multiple orders in parallel up to MAX_OPEN
                
-        #self.data['EMA'] = bt.indicators.ExponentialMovingAverage
+               
+        #self.data['ema'] = bt.indicators.ExponentialMovingAverage
         #self.data['ema_signal'] = is_trend(self.data, backcandles=10)
         
         bc = self.params.backcandles 
@@ -136,7 +134,6 @@ class BreakoutStrategy(Strategy):
    
     
     def start(self):
-        #sys.stdout.write(f'\rrun nr: {BreakoutStrategy.run_nr}')
         BreakoutStrategy.run_nr = BreakoutStrategy.run_nr + 1
     
 
@@ -168,9 +165,6 @@ class BreakoutStrategy(Strategy):
                         self.log(f'OPEN SELL [close={close:6.4f}, stoploss={stop1:6.4f}, limit={limit1:6.4f}]')               
                         self.order = self.sell_bracket(limitprice=limit1, stopprice=stop1, size=None)
                         
-                        #tp2 = close - sl_diff
-                        #self.sell(sl=sl1, tp=tp2, size=self.pos_sz)
-                        
                 case Signal.BUY:
                     if BreakoutStrategy.LONG:
                         stop1  = close * (1.0 - s_fac)
@@ -178,11 +172,7 @@ class BreakoutStrategy(Strategy):
                         
                         self.log(f'OPEN BUY [close={close:6.4f}, stoploss={stop1:6.4f}, limit={limit1:6.4f}]')               
                         self.order = self.buy_bracket(limitprice=limit1, stopprice=stop1, size=None)
-                        #self.order = self.buy_bracket(exectype=bt.Order.StopTrail, trailpercent=2*s_fac, limitprice=limit1)
-                        
-                        #tp2 = close + sl_diff
-                        #self.buy(sl=sl1, tp=tp2, size=self.pos_sz)
-                
+                        #self.order = self.buy_bracket(exectype=bt.Order.StopTrail, trailpercent=2*s_fac, limitprice=limit1)               
                 case 0:
                     pass
                 case _:
@@ -215,7 +205,7 @@ class BreakoutStrategy(Strategy):
             elif order.issell():    
                 self.log(f'SELL EXECUTED [Price: {order.executed.price:.2f}, Cost: {order.executed.value:.2f}, Comm: {order.executed.comm:.2f}]')
 
-            self.open_positions = self.open_positions +1
+            #self.open_positions = self.open_positions +1
             self.bar_executed = len(self)
 
 
@@ -234,7 +224,7 @@ class BreakoutStrategy(Strategy):
         if not trade.isclosed:
             return
 
-        self.open_positions = self.open_positions -2
+        #self.open_positions = self.open_positions -2
         print(f'{trade.baropen:5d}, {bt.num2date(trade.dtopen)}, {trade.barclose:5d}, {bt.num2date(trade.dtclose)}, {trade.pnl:8.3f}, {trade.pnlcomm:8.3f}')
         self.log(f'OPERATION PROFIT, GROSS {trade.pnl:8.3f}, NET {trade.pnlcomm:8.3f}\n******')
     
