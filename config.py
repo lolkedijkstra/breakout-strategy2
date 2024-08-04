@@ -123,7 +123,7 @@ class Config:
 
 
 def load_config(configfile: str) -> Config:
-    logger.info("load_config: start")
+    logger.debug("load_config: start")
 
     runtime: RuntimeOptions = None
     run: RunOptions = None
@@ -160,6 +160,6 @@ def load_config(configfile: str) -> Config:
             for tag in TradingOptions.tags:
                 trading.add(tag)
                
-    logger.info("load_config: end\n")   
+    logger.debug("load_config: end\n")   
     return Config(runtime=runtime, run=run, optim=optim, trading=trading)  
 

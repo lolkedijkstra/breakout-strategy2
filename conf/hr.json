@@ -35,15 +35,7 @@
         "sl_distance":      0.025,
         "tp_sl_ratio":      2.0, 
         "zone_height":      0.00095,
-        "breakout_factor":  2.0,
-		
-        "rsi_period":       14,
-
-        "open_long_rsi":    31,
-        "close_long_rsi":   95,
-
-        "open_short_rsi":   85,
-        "close_short_rsi":  17
+        "breakout_factor":  2.0
     },
 
 
@@ -66,15 +58,7 @@
         "sl_distance":      [0.029],
         "tp_sl_ratio":      [2.00],
         "zone_height":      [0.00095],
-        "breakout_factor":  [2.0],
-
-        "rsi_period":       [14],
-        
-        "open_long_rsi":    [20, 33, 3],
-        "close_long_rsi":   [80, 91, 2],
-
-        "open_short_rsi":   [82, 88, 2], 
-        "close_short_rsi":  [20, 41, 3]          
+        "breakout_factor":  [2.0]   
     },
 
     

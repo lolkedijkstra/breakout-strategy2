@@ -271,20 +271,15 @@ def get_args():
     import argparse
     p = argparse.ArgumentParser()
     p.add_argument("ticker")
-    p.add_argument("begin", help="for test data, first bar, else start date")
-    p.add_argument("end", help="for test data, stop bar (e=-1 indicates e is ignored), else stop date")
+    p.add_argument("begin", help="for test data, first bar (numeric), else start date")
+    p.add_argument("end", help="for test data, stop bar (e=-1 indicates e is ignored), else stop date")  
+    p.add_argument("config", help="configuration file (json)")
     
-    p.add_argument("-c", "--config", help="configuration file (json)")
-    p.add_argument("-g", "--gap", type=int, help="gap window")
-    p.add_argument("-b", "--backcandles", type=int, help="number of bars in zone (backcandles)")
-    p.add_argument("-p", "--pwindow", type=int, help="number of bars in pivot window")
-    p.add_argument("-z", "--zoneheight", type=float, help="height of zone in fraction of price")
-    p.add_argument("-m", "--max", type=int, help="max no of bars from start")
-    p.add_argument("-r", "--run", action="store_true", help="normal mode of operation")
-    p.add_argument("-s", "--save", action="store_true", help="saving input to csv file")
-    p.add_argument("-plot", "--plot", action="store_true", help="showing plot of pivots")
-    p.add_argument("-log", "--loglevel", help="loglevel (default=INFO)")
-
+    p.add_argument("-v", "--verbose", action="store_true")
+    p.add_argument("-log", "--loglevel", 
+                   choices=['debug', 'DEBUG', 'info', 'INFO', 'warning', 'WARNING', 'error', 'ERROR'], 
+                   help="loglevel (default=INFO)")
+    
     return p.parse_args() 
     
 
@@ -295,8 +290,6 @@ def get_loglevel(loglevel):
     
     return logging.getLevelName(loglevel.upper())
 
-
-    
 
 
 #
@@ -339,93 +332,45 @@ if __name__ == '__main__':
             edate = datetime.strptime(args.end, '%Y%m%d').date()
             Application.logger.info(f'data = {ticker}, [start, end] = [{bdate}, {edate}]\n')
             data = Application.fetch_data(ticker, bdate, edate) 
-                       
-    
+                               
+        
+        # load configuration file
+        configuration: Config = config.load_config(args.config)            
+        opt = RuntimeParameters(configuration.runtime) 
+        
         # pre calculate pivots
         print('calculating pivots...')
-        pivot_window = args.pwindow if args.pwindow else Pivot.WINDOW
+        
+        # we take the pivot_window parameter from run since we pre-calculate
+        pivot_window = configuration.run.get('pivot_window')
         data['pivot'] = pivot(data=data, pivot_window=pivot_window)
-                
-        # plot pivots
-        if args.plot:
-            pivot_plot(data)
-            
+        
         data.set_index("Date", inplace=True, drop=True)
-        data.reset_index()         
+        data.reset_index()                     
         
-        #
-        # using specified config file 
-        #  
-        if args.config:
-            configuration: Config = config.load_config(args.config)            
-            opt = RuntimeParameters(configuration.runtime) 
+         
+        if opt.SAVE_SNAPSHOT: 
+            data.to_csv(f"out/{ticker.lower()}-{args.begin}-{args.end}-backup.csv")      
             
-            if opt.SAVE_SNAPSHOT: 
-                data.to_csv(f"out/{ticker.lower()}-{args.begin}-{args.end}-backup.csv")            
-            
-            if opt.STORE_SIGNALS:
-                pass
-            
-            if opt.STORE_ACTIONS: 
-                pass
-            
-            if opt.RUN: 
-                run = RunParameters(conf=configuration.run)
-                trading = TradingParameters(conf=configuration.trading)
-                Application.run(data=data, par=run, trading_par=trading, plot=opt.PLOTTING) 
-             
-            elif opt.OPTIMIZE:
-                optim = OptimizeParameters(conf=configuration.optim)
-                trading = TradingParameters(conf=configuration.trading)
-                Application.optimize(data=data, par=optim, trading_par=trading)
-                         
- 
- 
- 
-        #
-        # command line options
-        #        
+        if opt.PLOTTING:
+            pivot_plot(data)         
         
-        else:                    
-            # backup for reference            
-            if args.save:  
-                print('saving backup...')    
-                data.to_csv(f"out/{ticker.lower()}-{args.begin}-{args.end}-backup.csv")          
-                
- 
-           
-            # execute 
-            if args.run:
-                print("run...")
-                opt = RunOptions()
-                
-                if args.gap is not None:
-                    opt.add(tag='gap_window', value=int(args.gap)) 
-                if args.backcandles is not None:
-                    opt.add(tag='backcandles', value=int(args.backcandles)) 
-                if args.pwindow is not None:
-                    opt.add(tag='pivot_window', value=int(args.pwindow)) 
-                if args.zoneheight is not None:
-                    opt.add(tag='zone_height', value=float(args.zoneheight)) 
-                
-                parameters = RunParameters(conf=opt)
-                
-                #tradingpar = TradingParameters(conf=None)
-                
-                # alternative initialization
-                def getTradingOptions(par: dict) -> config.TradingOptions:                  
-                    options = config.TradingOptions()
-                    for key, value in par.items():
-                        options.add(key, value)                       
-                    return options
-                
-                my_par = dict(amount=10_000, size=0.99, commission=0.0, plong=True, pshort= True)
-                tradingpar = TradingParameters(getTradingOptions(par=my_par))
+        if opt.STORE_SIGNALS:
+            pass
+        
+        if opt.STORE_ACTIONS: 
+            pass
+        
+        if opt.RUN: 
+            run = RunParameters(conf=configuration.run)
+            trading = TradingParameters(conf=configuration.trading)
+            Application.run(data=data, par=run, trading_par=trading, plot=opt.PLOTTING)
+            
+        elif opt.OPTIMIZE:
+            optim = OptimizeParameters(conf=configuration.optim)
+            trading = TradingParameters(conf=configuration.trading)
+            Application.optimize(data=data, par=optim, trading_par=trading)                      
 
-                Application.run(data=data, par=parameters, trading_par=tradingpar, plot=args.plot) 
-                   
-            
-            
   
     except Exception as e:
         import traceback
