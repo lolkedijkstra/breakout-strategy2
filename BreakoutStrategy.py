@@ -117,11 +117,11 @@ class BreakoutStrategy(Strategy):
             self.signals[idx] = algo.calc_signal(
                                     data        = self.data,
                                     candle_idx  = idx,
-                                    backcandles = bc,
-                                    gap_window  = gw,
+                                    backcandles = self.params.backcandles,
+                                    gap_window  = self.params.gap_window,
                                     pivots      = self.params.pivots,
-                                    zone_height = zh,
-                                    breakout_f  = bf
+                                    zone_height = self.params.zone_height,
+                                    breakout_f  = self.params.breakout_f
                                     )
 
 
