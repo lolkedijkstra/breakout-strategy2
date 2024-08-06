@@ -18,22 +18,18 @@ def log_signals(level, data, signals, s):
     if level < logger.level:
         return
 
-    sz = len(signals)
-
-    match(s):
-        case Signal.BUY:
-            for i in range(0, sz):
-                if Signal.BUY == int(signals[i]):
+    for i in range(0, len(signals)):
+        match(s):
+            case Signal.BUY:
+                if Signal.BUY == signals[i]:
                     log_signal(level, i, data, signals[i])
 
-        case Signal.SELL:
-            for i in range(0, sz):
-                if Signal.SELL == int(signals[i]):
+            case Signal.SELL:
+                if Signal.SELL == signals[i]:
                     log_signal(level, i, data, signals[i])
 
-        case Signal.EITHER:
-            for i in range(0, sz):
-                if int(signals[i] in [Signal.BUY, Signal.SELL] ):
+            case Signal.EITHER:
+                if signals[i] in [Signal.BUY, Signal.SELL]:
                     log_signal(level, i, data, signals[i])
 
 
@@ -108,7 +104,6 @@ class BreakoutStrategy(Strategy):
         self.sl_dist = self.params.sl_distance     # stop distance as fraction of last close
         self.tp_sl   = self.params.tp_sl_ratio     # w/l ratio
 
-
         # get signals and reset signal index
         self.signal_idx = 0
         sz = self.data.buflen()
@@ -125,7 +120,7 @@ class BreakoutStrategy(Strategy):
                                     )
 
 
-        log_signals(logging.DEBUG, self.data, self.signals,  Signal.BUY | Signal.SELL )
+        log_signals(logging.DEBUG, self.data, self.signals, Signal.BUY|Signal.SELL )
 
 
     def accept_short(self) -> bool:

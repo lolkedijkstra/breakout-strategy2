@@ -65,6 +65,7 @@ class algo:
         #def _is_zone(values , mean, height):
         def _is_zone(values: list[float], mean: float, zheight: float):
             for value in values:
+#                if abs(value-mean) > zheight:
                 if abs(value-mean) > zheight * mean:
                     return False
             return True
@@ -85,7 +86,7 @@ class algo:
     # backcandles   the width of the window of analysis
     # gap_window    gap must be >= pivot window to make sure pivot window doesn;t extend beyond current candle
     # pivots        the array holding the pivots
-    # zone_height   the relative price fluctuation
+    # zone_height   the RELATIVE price fluctuation
     #
     #from backtrader.feed import Database
 
@@ -112,6 +113,7 @@ class algo:
 
         if _N == len(pvts):
             sig = algo._check_breakout(
+#                    lambda mean, cclose, zheight: (Signal.SELL if (mean - cclose) > zheight * _F else 0),
                     lambda mean, cclose, zheight: (Signal.SELL if (mean - cclose) > zheight * mean * _F else 0),
                     pvts,
                     zone_height,
@@ -128,6 +130,7 @@ class algo:
 
         if _N == len(pvts):
             sig = algo._check_breakout(
+#                lambda mean, cclose, zheight: (Signal.BUY if (cclose - mean) > zheight  * _F else 0),
                 lambda mean, cclose, zheight: (Signal.BUY if (cclose - mean) > zheight * mean * _F else 0),
                 pvts,
                 zone_height,
