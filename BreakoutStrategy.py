@@ -74,6 +74,10 @@ class BreakoutStrategy(Strategy):
     )
 
 
+    def log_parameters(self, params):
+        logger.debug(f'ticker: {params.ticker}, tp_sl_ratio: {params.tp_sl_ratio}, sl_distance: {params.sl_distance}, backcandles: {params.backcandles}, gap_window: {params.gap_window}, zone_height: {params.zone_height}, breakout_f: {params.breakout_f}')
+
+
     #
     # BreakoutStrategy.log
     #
@@ -103,6 +107,8 @@ class BreakoutStrategy(Strategy):
 
         self.sl_dist = self.params.sl_distance     # stop distance as fraction of last close
         self.tp_sl   = self.params.tp_sl_ratio     # w/l ratio
+
+        self.log_parameters(self.params)
 
         # get signals and reset signal index
         self.signal_idx = 0

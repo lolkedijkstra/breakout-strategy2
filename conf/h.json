@@ -1,9 +1,9 @@
-{ 
+{
     "runtimeoptions": {
         "_comment": [
             "runtime options",
-    
-        "===========================================================",           
+
+        "===========================================================",
         "same tags must be used in this segment and config.Options",
         "==========================================================="
         ],
@@ -13,31 +13,14 @@
         "store_actions":    true,
         "plotting":         false,
 
-        "optimize":         true, 
-        "run":              false
+        "optimize":         false,
+        "run":              true
 
     },
 
-    
-    "run": {
-        "_comment": [
-            "runtime parameters",
-
-        "============================================================",
-        "same tags must be used in this segment and config.RunOptions",
-        "============================================================"   
-        ],
- 
-        "pivot_window":     6,
-        "gap_window":       7,
-        "backcandles":      40,
-
-        "sl_distance":      0.025,
-        "tp_sl_ratio":      2.0, 
-        "zone_height":      0.00095,
-        "breakout_factor":  2.0
+    "pivot": {
+        "window": 6
     },
-
 
     "optimize": {
         "_comment": [
@@ -45,30 +28,29 @@
             "it's possible to specify either ranges or arrays",
             "if a single value is used, use an array with a single value",
             "in the case of ranges, the step is mandatory",
-            
-        "===========================================================",           
+
+        "===========================================================",
         "same tags must be used in this segment and config.Optimize",
-        "==========================================================="           
+        "==========================================================="
         ],
 
-        "pivot_window":     [6],
         "gap_window":       [7],
-        "backcandles":      [37, 41, 1],
+        "backcandles":      [37],
 
-        "sl_distance":      [0.025, 0.026, 0.027, 0.028, 0.029],
-        "tp_sl_ratio":      [1.95, 2.00],
-        "zone_height":      [0.00095, 0.00100],
-        "breakout_factor":  [2.0]        
+        "sl_distance":      [0.024, 0.025],
+        "tp_sl_ratio":      [2.0],
+        "zone_height":      [0.0008333333],
+        "breakout_factor":  [2.0]
     },
 
-    
+
     "trading": {
         "_comment": [
             "trading parameters",
 
-        "================================================================",           
+        "================================================================",
         "same tags must be used in this segment and config.TradingOptions",
-        "================================================================"  
+        "================================================================"
         ],
 
         "amount":           100000,
@@ -80,4 +62,4 @@
 
 }
 
-         
+

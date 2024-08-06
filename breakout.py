@@ -17,7 +17,7 @@ from BreakoutStrategy import BreakoutStrategy
 from pivot import *
 
 
-from parameters import RuntimeParameters, RunParameters, OptimizeParameters, TradingParameters
+from parameters import RuntimeParameters, PivotParameters, RunParameters, OptimizeParameters, TradingParameters
 
 
 pd.options.mode.copy_on_write = True
@@ -339,8 +339,8 @@ if __name__ == '__main__':
         print('calculating pivots...')
 
         # we take the pivot_window parameter from run since we pre-calculate
-        pivot_window = configuration.run.get('pivot_window')
-        data['pivot'] = pivot(data=data, pivot_window=pivot_window)
+        pvt = PivotParameters(configuration.pivot)
+        data['pivot'] = pivot(data=data, pivot_window=pvt.window)
 
         data.set_index("Date", inplace=True, drop=True)
         data.reset_index()

@@ -13,14 +13,33 @@
         "store_actions":    true,
         "plotting":         false,
 
-        "optimize":         true,
-        "run":              false
+        "optimize":         false,
+        "run":              true
 
     },
 
     "pivot": {
         "window": 6
     },
+
+    "run": {
+        "_comment": [
+            "runtime parameters",
+
+        "============================================================",
+        "same tags must be used in this segment and config.RunOptions",
+        "============================================================"
+        ],
+
+        "gap_window":       7,
+        "backcandles":      39,
+
+        "sl_distance":      0.033,
+        "tp_sl_ratio":      2,
+        "zone_height":      0.0105,
+        "breakout_factor":  2
+    },
+
 
 
     "optimize": {

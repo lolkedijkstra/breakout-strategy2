@@ -18,6 +18,9 @@
 
     },
 
+    "pivot": {
+        "window": 6
+    },
 
     "run": {
         "_comment": [
@@ -28,37 +31,13 @@
         "============================================================"
         ],
 
-        "pivot_window":     6,
         "gap_window":       7,
         "backcandles":      37,
 
-        "sl_distance":      0.07,
+        "sl_distance":      0.025,
         "tp_sl_ratio":      2.0,
         "zone_height":      0.0008333333,
         "breakout_factor":  2.0
-    },
-
-
-    "optimize": {
-        "_comment": [
-            "runtime parameters for testing ranges of values",
-            "it's possible to specify either ranges or arrays",
-            "if a single value is used, use an array with a single value",
-            "in the case of ranges, the step is mandatory",
-
-        "===========================================================",
-        "same tags must be used in this segment and config.Optimize",
-        "==========================================================="
-        ],
-
-        "pivot_window":     [6],
-        "gap_window":       [7],
-        "backcandles":      [37],
-
-        "sl_distance":      [0.024, 0.025],
-        "tp_sl_ratio":      [2.0],
-        "zone_height":      [0.0008333333],
-        "breakout_factor":  [2.0]
     },
 
 
