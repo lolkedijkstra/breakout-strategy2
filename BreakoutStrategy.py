@@ -35,6 +35,7 @@ def log_signals(level, data, signals, s):
 
 
 from array import array
+from indicators import BreakoutIndicator
 
 class BreakoutStrategy(Strategy):
 
@@ -91,6 +92,7 @@ class BreakoutStrategy(Strategy):
     #
     def __init__(self):
 
+
         print(f"calculating signals, run no: {BreakoutStrategy.run_nr}")
 
         # keep track of pending orders
@@ -98,12 +100,15 @@ class BreakoutStrategy(Strategy):
         self.buyprice = None
         self.buycomm = None
 
-        #self.open_positions = 0  the idea is to allow multiple orders in parallel up to MAX_OPEN
+        self.sma = bt.indicators.SimpleMovingAverage(self.data.close, period=14)
+        #self.ema_signal = is_trend(self.data, backcandles=10)
 
+        #self.sma = bt.indicators.SimpleMovingAverage(self.datas[0], period=14)#self.params.maperiod)
+        #bt.indicators.ExponentialMovingAverage(self.datas, period=25)
 
-        #self.data['ema'] = bt.indicators.ExponentialMovingAverage
-        #self.data['ema_signal'] = is_trend(self.data, backcandles=10)
+        #print(len(self.ema))
 
+        self.atr = bt.indicators.atr.AverageTrueRange(self.data)
 
         self.sl_dist = self.params.sl_distance     # stop distance as fraction of last close
         self.tp_sl   = self.params.tp_sl_ratio     # w/l ratio
@@ -111,22 +116,19 @@ class BreakoutStrategy(Strategy):
         self.log_parameters(self.params)
 
         # get signals and reset signal index
-        self.signal_idx = 0
-        sz = self.data.buflen()
-        self.signals = array('i', [0] * sz)
-        for idx in range(0, sz):
-            self.signals[idx] = algo.calc_signal(
-                                    data        = self.data,
-                                    candle_idx  = idx,
-                                    backcandles = self.params.backcandles,
-                                    gap_window  = self.params.gap_window,
-                                    pivots      = self.params.pivots,
-                                    zone_height = self.params.zone_height,
-                                    breakout_f  = self.params.breakout_f
-                                    )
+        self.signal = \
+            BreakoutIndicator(
+                self.data,
+                backcandles = self.params.backcandles,
+                gap_window  = self.params.gap_window,
+                zone_height = self.params.zone_height,
+                pivots      = self.params.pivots,
+                breakout_f  = self.params.breakout_f
+            )
 
 
-        log_signals(logging.DEBUG, self.data, self.signals, Signal.BUY|Signal.SELL )
+        log_signals(logging.DEBUG, self.data, self.signal, Signal.BUY|Signal.SELL )
+        print(self.data.close[0])
 
 
     def accept_short(self) -> bool:
@@ -134,9 +136,6 @@ class BreakoutStrategy(Strategy):
 
     def accept_long(self) -> bool:
         return BreakoutStrategy.LONG
-
-    def get_signal(self) -> int:
-        return self.signals[self.signal_idx]
 
 
     def start(self):
@@ -157,12 +156,12 @@ class BreakoutStrategy(Strategy):
 
         if not self.position:   # Check if we are in the market
         #if self.open_positions <= MAX_OPEN:
-            close = self.data.close[0]          # last close
+            close = self.data.close[0]           # last close
 
-            match self.get_signal():
+            match self.signal:
 
                 case Signal.SELL:
-                    if self.accept_long():
+                    if self.accept_short():
                         stop1  = close * (1.0 + self.sl_dist)
                         limit1 = close * (1.0 - self.tp_sl * self.sl_dist)
 
@@ -170,7 +169,7 @@ class BreakoutStrategy(Strategy):
                         self.order = self.sell_bracket(limitprice=limit1, stopprice=stop1, size=None)
 
                 case Signal.BUY:
-                    if self.accept_short():
+                    if self.accept_long():
                         stop1  = close * (1.0 - self.sl_dist)
                         limit1 = close * (1.0 + self.tp_sl * self.sl_dist)
 
@@ -180,13 +179,12 @@ class BreakoutStrategy(Strategy):
                 case 0:
                     pass
                 case _:
-                    raise ValueError(f'Signal: {self.get_signal()} is invalid. Should be either 0, 1, or 2')
+                    raise ValueError(f'Signal: {self.signal} is invalid. Should be either 0, 1, or 2')
 
         else:  # we have a current position
             pass
 
         # incr signal index
-        self.signal_idx = self.signal_idx+1
 
 
 
