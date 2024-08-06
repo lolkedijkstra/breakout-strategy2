@@ -42,7 +42,7 @@ class BreakoutIndicator(bt.Indicator):
     def __init__(self):
         import array
         sz = self.data.buflen()
-        l_signal = array.array('f', [0] * sz) # 'i' does not work!
+        l_signal = array.array('f', [0] * sz) 
         for i in range(0, sz):
             l_signal[i] = algo.calc_signal(
                     data        = self.data,

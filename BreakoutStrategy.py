@@ -14,23 +14,25 @@ def log_signal(level, i, data, signal):
     name = "BUY" if signal == Signal.BUY else "SELL" if signal == Signal.SELL else "NONE"
     logger.log(level, f'{i}, {data.open.array[i]}, {data.high.array[i]}, {data.low.array[i]}, {data.close.array[i]}, {data.volume.array[i]}, {name}')
 
-def log_signals(level, data, signals, s):
+def log_signals(level, data, signal, s):
     if level < logger.level:
         return
 
+    signals = signal.array
     for i in range(0, len(signals)):
+        signal = int(signals[i])
         match(s):
             case Signal.BUY:
-                if Signal.BUY == signals[i]:
-                    log_signal(level, i, data, signals[i])
+                if Signal.BUY == signal:
+                    log_signal(level, i, data, signal)
 
             case Signal.SELL:
-                if Signal.SELL == signals[i]:
-                    log_signal(level, i, data, signals[i])
+                if Signal.SELL == signal:
+                    log_signal(level, i, data, signal)
 
             case Signal.EITHER:
-                if signals[i] in [Signal.BUY, Signal.SELL]:
-                    log_signal(level, i, data, signals[i])
+                if signal in [Signal.BUY, Signal.SELL]:
+                    log_signal(level, i, data, signal)
 
 
 
@@ -127,8 +129,7 @@ class BreakoutStrategy(Strategy):
             )
 
 
-        log_signals(logging.DEBUG, self.data, self.signal, Signal.BUY|Signal.SELL )
-        print(self.data.close[0])
+        log_signals(logging.INFO, self.data, self.signal, Signal.BUY|Signal.SELL )
 
 
     def accept_short(self) -> bool:
