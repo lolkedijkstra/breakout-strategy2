@@ -157,8 +157,6 @@ class Application :
 
         cerebro.adddata(data=pdata)
 
-        print(f'zoneheight: {par.zone_height}')
-
         Application.logger.info(f'optimize: adding strategy...\n')
 
         strats = cerebro.optstrategy(
@@ -183,16 +181,7 @@ class Application :
         cerebro.addanalyzer(DrawDown, _name = "drawdown")
         cerebro.addanalyzer(Returns, _name = "returns")
 
-        initial_value = cerebro.broker.get_value()
         results = cerebro.run(maxcpus=1)
-        end_value = cerebro.broker.get_value()
-
-        profit    = end_value-initial_value
-        gain      = 100*profit / initial_value
-
-        print(f"\nstart value: {initial_value:8.2f}\nend value: {end_value: 11.2f}\nprofit:{profit:15.2f}\ngain: {gain:16.2f}%")
-        Application.logger.info(f"START VALUE: {initial_value:8.2f}, END VALUE: {end_value:8.2f}, PROFIT: {profit:8.2f}, PERC: {gain:4.2f}")
-
         Application.save_optim_results(results)
 
         print('\ndone.')
@@ -221,8 +210,6 @@ class Application :
 
 
         cerebro.adddata(data=pdata)
-
-        print(f'zoneheight: {par.zone_height}')
 
         Application.logger.debug(f'run: adding strategy...\n')
         cerebro.addstrategy(

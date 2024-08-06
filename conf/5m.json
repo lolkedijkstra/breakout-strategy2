@@ -13,8 +13,8 @@
         "store_actions":    true,
         "plotting":         false,
 
-        "optimize":         false,
-        "run":              true
+        "optimize":         true,
+        "run":              false
 
     },
 
@@ -55,7 +55,7 @@
         "gap_window":       [7],
         "backcandles":      [37],
 
-        "sl_distance":      [0.024, 0.025],
+        "sl_distance":      [0.06, 0.065, 0.07],
         "tp_sl_ratio":      [2.0],
         "zone_height":      [0.0008333333],
         "breakout_factor":  [2.0]
