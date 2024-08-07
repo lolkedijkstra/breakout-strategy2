@@ -36,7 +36,6 @@ def log_signals(level, data, signal, s):
 
 
 
-from array import array
 from indicators import BreakoutIndicator
 
 class BreakoutStrategy(Strategy):
@@ -96,13 +95,13 @@ class BreakoutStrategy(Strategy):
 
 
         print(f"calculating signals, run no: {BreakoutStrategy.run_nr}")
+        self.log_parameters(self.params)
 
         # keep track of pending orders
         self.order = None
         self.buyprice = None
         self.buycomm = None
 
-        self.sma = bt.indicators.SimpleMovingAverage(self.data.close, period=14)
         #self.ema_signal = is_trend(self.data, backcandles=10)
 
         #self.sma = bt.indicators.SimpleMovingAverage(self.datas[0], period=14)#self.params.maperiod)
@@ -112,10 +111,13 @@ class BreakoutStrategy(Strategy):
 
         self.atr = bt.indicators.atr.AverageTrueRange(self.data)
 
+        self.s_ma = bt.indicators.ExponentialMovingAverage(self.data.close, period=14)
+        self.l_ma = bt.indicators.SimpleMovingAverage(self.data.close, period=50)
+
         self.sl_dist = self.params.sl_distance     # stop distance as fraction of last close
         self.tp_sl   = self.params.tp_sl_ratio     # w/l ratio
 
-        self.log_parameters(self.params)
+
 
         # get signals and reset signal index
         self.signal = \
@@ -133,10 +135,12 @@ class BreakoutStrategy(Strategy):
 
 
     def accept_short(self) -> bool:
-        return BreakoutStrategy.SHORT
+        #print (f'short: {self.data.close[0]} {self.s_ma[0]} {self.l_ma[0]}')
+        return BreakoutStrategy.SHORT #and self.data.close[0] < self.s_ma[0] and self.s_ma[0] < self.l_ma[0]
 
     def accept_long(self) -> bool:
-        return BreakoutStrategy.LONG
+        #print (f'long: {self.data.close[0]} {self.s_ma[0]} {self.l_ma[0]}')
+        return BreakoutStrategy.LONG #and self.data.close[0] > self.s_ma[0] and self.s_ma[0] > self.l_ma[0]
 
 
     def start(self):

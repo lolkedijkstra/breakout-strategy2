@@ -137,23 +137,27 @@ class Application :
 
     from backtrader.sizers import PercentSizer
 
+
+
     @staticmethod
-    def optimize(data: DataFrame, par: OptimizeParameters, trading_par: TradingParameters):
+    def optimize(data: DataFrame, par: OptimizeParameters, tpar: TradingParameters):
         Application.logger.info(f'optimize: {Application.ticker}...\n')
+        Application.logger.debug(par.to_string())
+        Application.logger.info(tpar.to_string())
+
         pivots = data['pivot'].array._ndarray
         pdata = PandasData(dataname=data, datetime=None, open=0, high=1, low=2, close=3, volume=4, openinterest=-1)
 
         Application.logger.info(f'optimize: init cerebro...\n')
         cerebro = Cerebro(stdstats=True)
 
-        cerebro.broker.setcash(trading_par.amount)
-        cerebro.broker.setcommission(trading_par.commission)
-        cerebro.addsizer(PercentSizer, percents = 100 * trading_par.size)
+        cerebro.broker.setcash(tpar.amount)
+        cerebro.broker.setcommission(tpar.commission)
+        cerebro.addsizer(PercentSizer, percents = 100 * tpar.size)
 
-        BreakoutStrategy.LONG = trading_par.plong
-        BreakoutStrategy.SHORT = trading_par.pshort
+        BreakoutStrategy.LONG = tpar.plong
+        BreakoutStrategy.SHORT = tpar.pshort
         BreakoutStrategy.VERBOSE = Application.VERBOSE
-
 
         cerebro.adddata(data=pdata)
 
@@ -161,7 +165,7 @@ class Application :
 
         strats = cerebro.optstrategy(
             BreakoutStrategy,
-                ticker       = (Application.ticker,),
+                ticker       = [Application.ticker],
 
                 tp_sl_ratio  = par.tp_sl_ratio,
                 sl_distance  = par.sl_distance,
@@ -170,12 +174,11 @@ class Application :
                 zone_height  = par.zone_height,
                 breakout_f   = par.breakout_factor,
 
-                pivots       = (pivots,)
+                pivots       = [pivots]
             )
 
         runs = len(par.tp_sl_ratio) * len(par.sl_distance) * len(par.backcandles) * len(par.gap_window) * len(par.zone_height)
         print(f"optimize, total number of runs: {runs}\n")
-        Application.logger.info(f'optimize: cerebro...{runs}\n')
 
         cerebro.addanalyzer(SharpeRatio, _name = "sharpe")
         cerebro.addanalyzer(DrawDown, _name = "drawdown")
@@ -188,24 +191,26 @@ class Application :
 
 
     @staticmethod
-    def run(data: DataFrame, par: RunParameters, trading_par: TradingParameters, plot: bool = False):
-
+    def run(data: DataFrame, par: RunParameters, tpar: TradingParameters, plot: bool = False):
         Application.logger.info(f'run: {Application.ticker}...\n')
+        Application.logger.debug(par.to_string())
+        Application.logger.info(tpar.to_string())
+
         pivots = data['pivot'].array._ndarray
         pdata = PandasData(dataname=data, datetime=None, open=0, high=1, low=2, close=3, volume=4, openinterest=-1)
 
         Application.logger.debug(f'run: init cerebro...\n')
         cerebro = Cerebro(stdstats=True)
 
-        cerebro.broker.setcash(trading_par.amount)
+        cerebro.broker.setcash(tpar.amount)
         if Application.VERBOSE:
-            print(f'amount: {trading_par.amount}, commission: {trading_par.commission}, long: {trading_par.plong}, short: {trading_par.pshort}, size: {trading_par.size}')
+            print(f'amount: {tpar.amount}, commission: {tpar.commission}, long: {tpar.plong}, short: {tpar.pshort}, size: {tpar.size}')
 
-        cerebro.broker.setcommission(trading_par.commission)
-        cerebro.addsizer(PercentSizer, percents = 100 * trading_par.size)
+        cerebro.broker.setcommission(tpar.commission)
+        cerebro.addsizer(PercentSizer, percents = 100 * tpar.size)
 
-        BreakoutStrategy.LONG = trading_par.plong
-        BreakoutStrategy.SHORT = trading_par.pshort
+        BreakoutStrategy.LONG = tpar.plong
+        BreakoutStrategy.SHORT = tpar.pshort
         BreakoutStrategy.VERBOSE = Application.VERBOSE
 
 
@@ -251,7 +256,9 @@ class Application :
         profit    = end_value-initial_value
         gain      = 100.0 * profit / initial_value
 
-        print(f"\nstart: \t{data.index[0]}\nend: \t{data.index[-1]}\nduration: \t{data.index[-1]-data.index[0]}\nstart value: \t{initial_value:8.2f}\nend value: \t{end_value:8.2f}\nprofit: \t{profit:8.2f}\ngain: \t{gain:8.2f}%")
+        print(f"\nstart: \t{data.index[0]}\nend: \t{data.index[-1]}\nduration: \t{data.index[-1]-data.index[0]}\n\
+            start value: \t{initial_value:8.2f}\nend value: \t{end_value:8.2f}\nprofit: \t{profit:8.2f}\ngain: \t{gain:8.2f}%")
+
         Application.logger.info(f"START VALUE: {initial_value:8.2f}, END VALUE: {end_value:8.2f}, PROFIT: {profit:8.2f}, PERC: {gain:4.2f}")
 
         if plot:
@@ -361,12 +368,12 @@ if __name__ == '__main__':
         if opt.RUN:
             run = RunParameters(conf=configuration.run)
             trading = TradingParameters(conf=configuration.trading)
-            Application.run(data=data, par=run, trading_par=trading, plot=opt.PLOTTING)
+            Application.run(data=data, par=run, tpar=trading, plot=opt.PLOTTING)
 
         elif opt.OPTIMIZE:
             optim = OptimizeParameters(conf=configuration.optim)
             trading = TradingParameters(conf=configuration.trading)
-            Application.optimize(data=data, par=optim, trading_par=trading)
+            Application.optimize(data=data, par=optim, tpar=trading)
 
 
     except Exception as e:

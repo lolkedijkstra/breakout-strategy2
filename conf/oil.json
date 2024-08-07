@@ -13,14 +13,34 @@
         "store_actions":    true,
         "plotting":         false,
 
-        "optimize":         true,
-        "run":              false
+        "optimize":         false,
+        "run":              true
 
     },
 
     "pivot": {
         "window": 6
     },
+
+    "run": {
+        "_comment": [
+            "runtime parameters",
+
+        "============================================================",
+        "same tags must be used in this segment and config.RunOptions",
+        "============================================================"
+        ],
+
+        "gap_window":       7,
+        "backcandles":      32,
+
+        "sl_distance":      0.115,
+        "tp_sl_ratio":      2,
+        "zone_height":      0.09,
+        "breakout_factor":  2
+    },
+
+
 
     "optimize": {
         "_comment": [
@@ -35,11 +55,11 @@
         ],
 
         "gap_window":       [7],
-        "backcandles":      [37],
+        "backcandles":      [20,36, 2],
 
-        "sl_distance":      [0.024, 0.025],
-        "tp_sl_ratio":      [2.0],
-        "zone_height":      [0.0008333333],
+        "sl_distance":      [0.05, 0.12, 0.005],
+        "tp_sl_ratio":      [2.00],
+        "zone_height":      [0.05, 0.11, 0.01],
         "breakout_factor":  [2.0]
     },
 
@@ -53,7 +73,7 @@
         "================================================================"
         ],
 
-        "amount":           100000,
+        "amount":           10000000,
         "size":             0.9,
         "commission":       0.001,
         "long":             true,

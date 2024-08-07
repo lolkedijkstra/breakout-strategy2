@@ -5,6 +5,10 @@ from pivot import Pivot
 
 class PivotParameters:
 
+    def to_string(self):
+        return f'pivot_window: {self.window}'
+
+
     def __init__(self, conf: config.PivotOptions):
         self.window = Pivot.WINDOW
 
@@ -18,6 +22,15 @@ class PivotParameters:
 
 # parameters for regular run
 class RunParameters:
+
+    def to_string(self):
+        return f'gap_window: {self.gap_window}\n  \
+            backcandles: {self.backcandles}\n  \
+            sl_distance: {self.sl_distance}\n  \
+            tp_sl_ratio: {self.tp_sl_ratio}\n  \
+            zone_height: {self.zone_height}\n  \
+            breakout_factor: {self.breakout_factor}'
+
 
     # conf: the JSON object, default if None
     def __init__(self, conf: config.RunOptions):
@@ -66,6 +79,15 @@ class RunParameters:
 # parameters for optimization run
 class OptimizeParameters:
 
+    def to_string(self):
+        return f'gap_window: {self.gap_window}\n  \
+            backcandles: {self.backcandles}\n  \
+            sl_distance: {self.sl_distance}\n  \
+            tp_sl_ratio: {self.tp_sl_ratio}\n  \
+            zone_height: {self.zone_height}\n  \
+            breakout_factor: {self.breakout_factor}'
+
+
     # conf: the JSON object, default if None
     def __init__(self, conf: config.OptimizeOptions):
         # defaults
@@ -110,6 +132,9 @@ class OptimizeParameters:
 # parameters for trading
 class TradingParameters:
 
+    def to_string(self):
+        return f'amount: {self.amount}, size: {self.size}, commission: {self.commission}, long: {self.plong}, short: {self.pshort}'
+
     # conf: the JSON object, default if None
     def __init__(self, conf: config.TradingOptions):
         # defaults
@@ -146,6 +171,9 @@ class TradingParameters:
 
 # parameters to switch functions OFF | ON
 class RuntimeParameters:
+
+    def to_string(self):
+        return f'save snapshot: {self.SAVE_SNAPSHOT}, store actions: {self.STORE_ACTIONS}, store signals: {self.STORE_SIGNALS}, optimize: {self.OPTIMIZE}, run: {self.RUN}, plotting: {self.PLOTTING}'
 
     # conf: the JSON object, default if None
     def __init__(self, conf: config.TradingOptions):

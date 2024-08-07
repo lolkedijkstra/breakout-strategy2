@@ -25,11 +25,14 @@ class StochRSI(bt.Indicator):
 #
 
 from algo import algo
+from array import array
+
 class BreakoutIndicator(bt.Indicator):
     lines = ('signal',)
 
     params = dict(
         backcandles = 0,
+        
         gap_window  = 0,
         zone_height = 0,
         breakout_f  = 0,
@@ -37,12 +40,12 @@ class BreakoutIndicator(bt.Indicator):
     )
 
     #
-    # signal calculation is done here for each run (e.g. backtest)
+    # signal calculation
     #
+
     def __init__(self):
-        import array
         sz = self.data.buflen()
-        l_signal = array.array('f', [0] * sz) 
+        l_signal = array('f', [0] * sz) # internal array is float
         for i in range(0, sz):
             l_signal[i] = algo.calc_signal(
                     data        = self.data,

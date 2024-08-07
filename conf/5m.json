@@ -13,8 +13,8 @@
         "store_actions":    true,
         "plotting":         false,
 
-        "optimize":         true,
-        "run":              false
+        "optimize":         false,
+        "run":              true
 
     },
 
