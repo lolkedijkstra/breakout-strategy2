@@ -51,6 +51,7 @@
         ],
 
         "amount":           100000,
+        "position_risk":    0.01,
         "size":             0.80,
         "commission":       0.001,
         "long":             true,

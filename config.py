@@ -66,7 +66,7 @@ class RunOptions(Options):
 
 class TradingOptions(Options):
     tags = [
-        'amount', 'commission', 'size', 'long', 'short'
+        'amount', 'commission', 'position_risk', 'size', 'long', 'short'
     ]
 
 

@@ -133,13 +133,14 @@ class OptimizeParameters:
 class TradingParameters:
 
     def to_string(self):
-        return f'amount: {self.amount}, size: {self.size}, commission: {self.commission}, long: {self.plong}, short: {self.pshort}'
+        return f'amount: {self.amount}, size: {self.size}, size: {self.position_risk}, commission: {self.commission}, long: {self.plong}, short: {self.pshort}'
 
     # conf: the JSON object, default if None
     def __init__(self, conf: config.TradingOptions):
         # defaults
-        self.amount = 10000.0
-        self.size = 0.9
+        self.amount = 0.0
+        self.size = 0.0
+        self.position_risk = 0.0
         self.commission = 0.0
         self.plong: bool = True
         self.pshort: bool = False
@@ -155,6 +156,10 @@ class TradingParameters:
         tag = "size"
         if conf.has(tag):
             self.size = conf.get(tag)
+
+        tag = "position_risk"
+        if conf.has(tag):
+            self.position_risk = conf.get(tag)
 
         tag = "commission"
         if conf.has(tag):

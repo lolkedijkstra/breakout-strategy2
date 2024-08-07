@@ -13,7 +13,7 @@ from backtrader.sizers import PercentSizer
 from backtrader.feeds import PandasData
 from backtrader.analyzers import SharpeRatio, DrawDown, Returns
 
-from BreakoutStrategy import BreakoutStrategy
+from strategies import BreakoutStrategy
 from pivot import *
 
 

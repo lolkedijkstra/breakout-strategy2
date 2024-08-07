@@ -1,7 +1,9 @@
-from backtrader import Strategy
-from trading import Signal
-from algo import algo
 import backtrader as bt
+from backtrader import Strategy
+from indicators import BreakoutIndicator
+
+from trading import Signal
+
 
 #
 # logging
@@ -36,7 +38,6 @@ def log_signals(level, data, signal, s):
 
 
 
-from indicators import BreakoutIndicator
 
 class BreakoutStrategy(Strategy):
 
@@ -108,15 +109,16 @@ class BreakoutStrategy(Strategy):
         #bt.indicators.ExponentialMovingAverage(self.datas, period=25)
 
         #print(len(self.ema))
+        stopfactor = 3.0
+        atr = bt.ind.ATR(self.data, period=14)
+        emaatr = bt.ind.EMA(atr, period=10)
+        self.stop_dist = emaatr * stopfactor
 
-        self.atr = bt.indicators.atr.AverageTrueRange(self.data)
-
-        self.s_ma = bt.indicators.ExponentialMovingAverage(self.data.close, period=14)
-        self.l_ma = bt.indicators.SimpleMovingAverage(self.data.close, period=50)
+        self.s_ma = bt.indicators.ExponentialMovingAverage(self.data, period=14)
+        self.l_ma = bt.indicators.SimpleMovingAverage(self.data, period=50)
 
         self.sl_dist = self.params.sl_distance     # stop distance as fraction of last close
         self.tp_sl   = self.params.tp_sl_ratio     # w/l ratio
-
 
 
         # get signals and reset signal index
@@ -136,11 +138,11 @@ class BreakoutStrategy(Strategy):
 
     def accept_short(self) -> bool:
         #print (f'short: {self.data.close[0]} {self.s_ma[0]} {self.l_ma[0]}')
-        return BreakoutStrategy.SHORT #and self.data.close[0] < self.s_ma[0] and self.s_ma[0] < self.l_ma[0]
+        return BreakoutStrategy.SHORT and self.data.close[0] < self.s_ma[0] and self.s_ma[0] < self.l_ma[0]
 
     def accept_long(self) -> bool:
         #print (f'long: {self.data.close[0]} {self.s_ma[0]} {self.l_ma[0]}')
-        return BreakoutStrategy.LONG #and self.data.close[0] > self.s_ma[0] and self.s_ma[0] > self.l_ma[0]
+        return BreakoutStrategy.LONG and self.data.close[0] > self.s_ma[0] and self.s_ma[0] > self.l_ma[0]
 
 
     def start(self):
@@ -236,6 +238,5 @@ class BreakoutStrategy(Strategy):
             print(f'{trade.baropen:5d}, {bt.num2date(trade.dtopen)}, {trade.barclose:5d}, {bt.num2date(trade.dtclose)}, {trade.pnl:8.3f}, {trade.pnlcomm:8.3f}')
 
         self.log(f'OPERATION PROFIT, GROSS {trade.pnl:8.3f}, NET {trade.pnlcomm:8.3f}\n******')
-
 
 
