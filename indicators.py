@@ -47,7 +47,7 @@ class BreakoutIndicator(bt.Indicator):
         sz = self.data.buflen()
         l_signal = array('f', [0] * sz) # internal array is float
         for i in range(0, sz):
-            l_signal[i] = algo.calc_signal(
+            l_signal[i] = algo.calc_breakout_signal(
                     data        = self.data,
                     candle_idx  = i,
 
@@ -59,6 +59,7 @@ class BreakoutIndicator(bt.Indicator):
                     )
 
         self.lines.signal.array = l_signal
+
 
 
 class StopTrailer(bt.Indicator):

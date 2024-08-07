@@ -105,15 +105,6 @@ class BreakoutStrategy(Strategy):
 
         #self.ema_signal = is_trend(self.data, backcandles=10)
 
-        #self.sma = bt.indicators.SimpleMovingAverage(self.datas[0], period=14)#self.params.maperiod)
-        #bt.indicators.ExponentialMovingAverage(self.datas, period=25)
-
-        #print(len(self.ema))
-        stopfactor = 3.0
-        atr = bt.ind.ATR(self.data, period=14)
-        emaatr = bt.ind.EMA(atr, period=10)
-        self.stop_dist = emaatr * stopfactor
-
         self.s_ma = bt.indicators.ExponentialMovingAverage(self.data, period=14)
         self.l_ma = bt.indicators.SimpleMovingAverage(self.data, period=50)
 
